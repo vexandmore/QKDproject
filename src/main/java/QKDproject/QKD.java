@@ -98,6 +98,9 @@ public class QKD implements Protocol {
 		}
 	}
 	
+	/**
+	 * Makes a key.
+	 */
 	public void makeKey() {
 		if (isAlice) {
 			int bitsSent = (int) (KEY_SIZE * 8 * 2.5 / (1 - (securityLevel / 100))); 
@@ -131,6 +134,13 @@ public class QKD implements Protocol {
 		}
 	}
 	
+	/**
+	 * Returns the indices where the Strings have identical characters. Strings
+	 * must be of the same length.
+	 * @param a First String
+	 * @param b Second string
+	 * @return List containing indices where the Strings match
+	 */
 	private static List<Integer> matchingIndices(String a, String b) {
 		if (a.length() != b.length())
 			throw new IllegalArgumentException("Strings must be same length");
@@ -143,6 +153,13 @@ public class QKD implements Protocol {
 		return indices;
 	}
 	
+	/**
+	 * Returns a new String consisting of the input string where only characters
+	 * at the given indices have been removed.
+	 * @param indices List containing the indices to keep
+	 * @param str Input string
+	 * @return String with chars at the given indices
+	 */
 	private String keepAtIndices(List<Integer> indices, String str) {
 		if (indices.size() > str.length())
 			throw new IllegalArgumentException("index list must not be longer"
@@ -154,6 +171,17 @@ public class QKD implements Protocol {
 		return out.toString();
 	}
 	
+	/**
+	 * Runs a python script with the given args in the given anaconda env.
+	 * Relies on cmd.exe having been initialized with conda (ie conda initialize
+	 * cmd.exe has been run). As such, only works on windows.
+	 * @param scriptLocation Path to the python script
+	 * @param condaEnvName Name of conda environment to run in.
+	 * @param args Arguments to give to python script
+	 * @return A BufferedReader. It will read what the python script outputs.
+	 * It will also read stderr.
+	 * @throws IOException 
+	 */
 	private static BufferedReader runPythonConda(String scriptLocation, 
 			String condaEnvName, String... args) throws IOException {
 		String[] initialArgs = {"cmd.exe", "/c", "conda", "activate", condaEnvName, 
