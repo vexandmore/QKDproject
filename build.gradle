@@ -13,6 +13,7 @@ repositories {
 dependencies {
     //testImplementation     'junit:junit:4.13'
     compile group: 'org.openjfx', name: 'javafx-media', version: '14'
+  implementation 'com.google.crypto.tink:tink-android:1.5.0'
 }
 
 javafx {

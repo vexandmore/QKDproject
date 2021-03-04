@@ -121,6 +121,9 @@ class KeyReceiver:
         self.compareKeyData = self.__privateKeyData[:int(numMatching/2)]
     def aa(self):
         return self.__privateKeyData
+    def printMeasured(self):
+        for i in self.receivedBits:
+            print(i, end='')
         
 def ReceiveData(sender, receiver, eve=None, backend = Aer.get_backend('qasm_simulator')):
     if eve is None:
@@ -182,10 +185,11 @@ def main():
     #    Eve = Eavesdropper(keyLength, listFromString(sys.argv[4]))
     
     ReceiveData(Alice, Bob, Eve)
-    Alice.makeKey()
-    Bob.makeKey()
-    print(Bob.aa())
-    print(Alice.aa())
+    Bob.printMeasured()
+    #Alice.makeKey()
+    #Bob.makeKey()
+    #print(Bob.aa())
+    #print(Alice.aa())
 main()
 
 
