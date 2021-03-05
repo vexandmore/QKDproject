@@ -7,8 +7,7 @@ Created on Wed Feb 10 16:14:41 2021
 from numpy.random import *
 from qiskit import QuantumCircuit, execute, Aer, IBMQ
 from qiskit.compiler import transpile, assemble
-from qiskit.tools.jupyter import *
-from qiskit.visualization import *
+import sys
 
 """So 1 represents either |1> or |->, 0 represents |0> or |+> for bits
 For the bases, 0 represents Z basis and 1 represents X basis"""
