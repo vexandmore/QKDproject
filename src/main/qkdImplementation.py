@@ -78,6 +78,12 @@ class Eavesdropper:
     
     def addBit(self, bit):
         self.receivedBits.append(bit)
+        
+    def printMeasured(self):
+        for i in self.receivedBits:
+            print(i, end='')
+        print('')
+        
 
 
 
@@ -123,6 +129,7 @@ class KeyReceiver:
     def printMeasured(self):
         for i in self.receivedBits:
             print(i, end='')
+        print('')
         
 def ReceiveData(sender, receiver, eve=None, backend = Aer.get_backend('qasm_simulator')):
     if eve is None:
@@ -180,11 +187,13 @@ def main():
     Bob = KeyReceiver(keyLength, bobBases)
     Eve = None
     
-    #if len(sys.argv) >= 4:
-    #    Eve = Eavesdropper(keyLength, listFromString(sys.argv[4]))
+    if len(sys.argv) > 4:
+        Eve = Eavesdropper(keyLength, listFromString(sys.argv[4]))
     
     ReceiveData(Alice, Bob, Eve)
     Bob.printMeasured()
+    if Eve is not None:
+        Eve.printMeasured()
     #Alice.makeKey()
     #Bob.makeKey()
     #print(Bob.aa())

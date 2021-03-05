@@ -6,11 +6,16 @@ import QKDproject.*;
  */
 public class QKDtest {
 	public static void main(String[] args) {
+		System.out.println("w/ eve");
 		QKD qkd = new QKD(true, 50, true);
 		QKD o = new QKD(true, 50, false);
 		qkd.connect(o);
-		
 		qkd.makeKey();
-		//qkd.encryptMessage(Protocol.stringToBytes("hello"));
+		
+		System.out.println("w/o eve");
+		qkd = new QKD(false, 50, true);
+		o = new QKD(false, 50, false);
+		qkd.connect(o);
+		qkd.makeKey();
 	}
 }

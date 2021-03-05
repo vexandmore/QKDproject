@@ -109,7 +109,7 @@ public class QKD implements Protocol {
 		if (isAlice) {
 			int bitsSent = (int) (KEY_SIZE * 8 * 2.5 / (1 - (securityLevel / 100))); 
 			Random rand = new Random();
-			//initialize alice's bits and measurement bases
+			//initialize alice's bits, bases and bob's bases and eave's bases (if necessary)
 			for (int i = 0; i < bitsSent; i++) {
 				alice_bases += rand.nextBoolean() ? '1' : '0';
 				alice_bits += rand.nextBoolean() ? '1' : '0';
@@ -117,13 +117,24 @@ public class QKD implements Protocol {
 				if (eavesdropper)
 					eve_bases += rand.nextBoolean() ? '1' : '0';
 			}
-			//send to python code and get Bob's measurements (Eve not implemented)	
-			try ( BufferedReader in = runPythonConda(SCRIPT_LOCATION, "quantum",
-					alice_bits, alice_bases, bob_bases)) {
-				//read directly from the stdout of the python
-				bob_results = in.readLine();
-			} catch (IOException e) {
-				System.out.println("ERROR " + e);
+			//send to python code and get Bob's and Eve's measurements
+			if (eavesdropper) {
+				try ( BufferedReader in = runPythonConda(SCRIPT_LOCATION, "quantum",
+						alice_bits, alice_bases, bob_bases, eve_bases)) {
+					bob_results = in.readLine();
+					eve_results = in.readLine();
+					//System.out.println("eve: " + eve_results);
+				} catch (IOException e) {
+					System.out.println("ERROR " + e);
+				}
+			} else {
+				//send to python code and get Bob's measurements
+				try ( BufferedReader in = runPythonConda(SCRIPT_LOCATION, "quantum",
+						alice_bits, alice_bases, bob_bases)) {
+					bob_results = in.readLine();
+				} catch (IOException e) {
+					System.out.println("ERROR " + e);
+				}
 			}
 			
 			List<Integer> matchingMeasurements = matchingIndices(alice_bases, bob_bases);
