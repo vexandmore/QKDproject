@@ -14,22 +14,25 @@ import static QKDproject.PyUtils.runPythonConda;
  * @author Marc
  */
 public class QKD implements Protocol {
+	/**
+	 * Key used for encryption.
+	 */
 	private byte[] key;
 	/**
-	 * Target final key size in bytes
+	 * Target final key size in bytes.
 	 */
 	private final static int KEY_SIZE = 16;
 	/**
-	 * The path of the python script.
+	 * The path of the python script. Determined at runtime by a static block.
 	 */
 	private static String SCRIPT_LOCATION;
 	static {
 		try {
-		SCRIPT_LOCATION = new File(".").getCanonicalPath() + File.separatorChar + "src" 
-						+ File.separatorChar + "main" + File.separatorChar + 
-						"qkdImplementation.py";
+			SCRIPT_LOCATION = new File(".").getCanonicalPath() + 
+					File.separatorChar + "src" + File.separatorChar + "main" + 
+					File.separatorChar + "qkdImplementation.py";
 		} catch (IOException e) {
-			//SCRIPT_LOCATION = "error getting script location";
+			SCRIPT_LOCATION = "error getting script location";
 		}
 	}
 	private QKD other;
