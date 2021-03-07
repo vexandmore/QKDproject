@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
  */
 public interface Protocol {
 	public byte[] encryptMessage(byte[] message);
-	public byte[] decryptMessage(byte[] encryptedMessage);
+	public byte[] decryptMessage(byte[] encryptedMessage) throws DecryptionFailed;
 	
 	public static byte[] stringToBytes(String str) {
 		return str.getBytes(StandardCharsets.UTF_8);

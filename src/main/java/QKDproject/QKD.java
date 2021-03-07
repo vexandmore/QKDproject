@@ -4,6 +4,7 @@ import com.google.crypto.tink.subtle.AesGcmJce;
 import java.io.*;
 import java.security.GeneralSecurityException;
 import java.util.*;
+import static QKDproject.PyUtils.runPythonConda;
 
 /**
  * Protocol that performs quantum key distribution. It is assumed that each
@@ -13,28 +14,31 @@ import java.util.*;
  * @author Marc
  */
 public class QKD implements Protocol {
+	/**
+	 * Key used for encryption.
+	 */
 	private byte[] key;
 	/**
-	 * Target final key size in bytes
+	 * Target final key size in bytes.
 	 */
 	private final static int KEY_SIZE = 16;
 	/**
-	 * The path of the python script.
+	 * The path of the python script. Determined at runtime by a static block.
 	 */
 	private static String SCRIPT_LOCATION;
 	static {
 		try {
-		SCRIPT_LOCATION = new File(".").getCanonicalPath() + File.separatorChar + "src" 
-						+ File.separatorChar + "main" + File.separatorChar + 
-						"qkdImplementation.py";
+			SCRIPT_LOCATION = new File(".").getCanonicalPath() + 
+					File.separatorChar + "src" + File.separatorChar + "main" + 
+					File.separatorChar + "qkdImplementation.py";
 		} catch (IOException e) {
-			//SCRIPT_LOCATION = "error getting script location";
+			SCRIPT_LOCATION = "error getting script location";
 		}
 	}
 	private QKD other;
 	private final boolean isAlice;
 	private boolean eavesdropper;
-	private double securityLevel;
+	private int securityLevel;
 	private String alice_bits = "";
 	private String alice_bases = "", bob_bases = "", eve_bases = "";
 	private String bob_results = "", eve_results = "";
@@ -45,7 +49,8 @@ public class QKD implements Protocol {
 	 * shared key.
 	 * @param eavesdropper Whether or not an eavesdropper will intercept
 	 * @param securityLevel The security level. Is a percentage of the qubits
-	 * that are compared.
+	 * that are compared. It effectively makes out at 50 (if it is over 50 half
+	 * the measurements will be compared the way it is implemented now).
 	 * @param isAlice whether or not this QKD is Alice
 	 */
 	public QKD(boolean eavesdropper, int securityLevel, boolean isAlice) {
@@ -84,7 +89,7 @@ public class QKD implements Protocol {
 	}
 	
 	@Override
-	public byte[] decryptMessage(byte[] encryptedMessage) {
+	public byte[] decryptMessage(byte[] encryptedMessage) throws DecryptionFailed {
 		if (key == null) {
 			makeKey();
 		}
@@ -93,8 +98,7 @@ public class QKD implements Protocol {
 			byte[] decrypted = a.decrypt(encryptedMessage, new byte[0]);
 			return decrypted;
 		} catch (GeneralSecurityException ex) {
-			System.out.println("Error\n" + ex);
-			return null;
+			throw new DecryptionFailed(ex);
 		}
 	}
 	
@@ -103,32 +107,64 @@ public class QKD implements Protocol {
 	 */
 	public void makeKey() {
 		if (isAlice) {
-			int bitsSent = (int) (KEY_SIZE * 8 * 2.5 / (1 - (securityLevel / 100))); 
-			Random rand = new Random();
-			//initialize alice's bits and measurement bases
-			for (int i = 0; i < bitsSent; i++) {
-				alice_bases += rand.nextBoolean() ? '1' : '0';
-				alice_bits += rand.nextBoolean() ? '1' : '0';
-				bob_bases += rand.nextBoolean() ? '1' : '0';
-				if (eavesdropper)
-					eve_bases += rand.nextBoolean() ? '1' : '0';
-			}
-			//send to python code and get Bob's measurements (Eve not implemented)	
-			try ( BufferedReader in = runPythonConda(SCRIPT_LOCATION, "base",
-					alice_bits, alice_bases, bob_bases)) {
-				//read directly from the stdout of the python
-				bob_results = in.readLine();
-			} catch (IOException e) {
-				System.out.println("ERROR " + e);
-			}
-			
-			List<Integer> matchingMeasurements = matchingIndices(alice_bases, bob_bases);
-			String aliceKey = keepAtIndices(matchingMeasurements, alice_bits);
-			String bobKey = keepAtIndices(matchingMeasurements, bob_results);
-			
-			System.out.println("alice:" + aliceKey);
-			System.out.println("bob:  " + bobKey);
-			//send data to other QKD
+			boolean keyMade = false;
+			do {
+				int bitsSent = (int) (KEY_SIZE * 8 * 2.5 / (1 - (securityLevel / 100)));
+				Random rand = new Random();
+				//initialize alice's bits, bases and bob's bases and eave's bases (if necessary)
+				for (int i = 0; i < bitsSent; i++) {
+					alice_bases += rand.nextBoolean() ? '1' : '0';
+					alice_bits += rand.nextBoolean() ? '1' : '0';
+					bob_bases += rand.nextBoolean() ? '1' : '0';
+					if (eavesdropper) {
+						eve_bases += rand.nextBoolean() ? '1' : '0';
+					}
+				}
+				//send to python code and get Bob's and Eve's measurements
+				if (eavesdropper) {
+					try ( BufferedReader in = runPythonConda(SCRIPT_LOCATION, "quantum",
+							alice_bits, alice_bases, bob_bases, eve_bases)) {
+						bob_results = in.readLine();
+						eve_results = in.readLine();
+						//System.out.println("eve: " + eve_results);
+					} catch (IOException e) {
+						System.out.println("ERROR " + e);
+					}
+				} else {
+					//send to python code and get Bob's measurements
+					try ( BufferedReader in = runPythonConda(SCRIPT_LOCATION, "quantum",
+							alice_bits, alice_bases, bob_bases)) {
+						bob_results = in.readLine();
+					} catch (IOException e) {
+						System.out.println("ERROR " + e);
+					}
+				}
+
+				List<Integer> matchingMeasurements = matchingIndices(alice_bases, bob_bases);
+				String aliceMatchingMeasured = keepAtIndices(matchingMeasurements, alice_bits);
+				String bobMatchingMeasured = keepAtIndices(matchingMeasurements, bob_results);
+				List<Integer> sampleIndices = sampleIndices(aliceMatchingMeasured.length(), securityLevel);
+				alice_sample = keepAtIndices(sampleIndices, aliceMatchingMeasured);
+				bob_sample = keepAtIndices(sampleIndices, bobMatchingMeasured);
+				//Compare the samples, restart if necessary
+				if (!alice_sample.equals(bob_sample)) {
+					System.out.println("Eavesdropper detected! Making key again");
+					continue;
+				} else {
+					keyMade = true;
+				}
+				//Now, make both keys with the unused bits
+				String alice_key = removeAtIndices(sampleIndices, aliceMatchingMeasured);
+				String bob_key = removeAtIndices(sampleIndices, bobMatchingMeasured);
+				//System.out.println("alice's key: " + alice_key);
+				//System.out.println("bob's key:   " + bob_key);
+				//System.out.println("alice:" + aliceMatchingMeasured);
+				//System.out.println("bob:  " + bobMatchingMeasured);
+				
+				//Make and send keys. These are not compared here
+				this.key = bitStringToArray(alice_key, KEY_SIZE);
+				other.key = bitStringToArray(bob_key, KEY_SIZE);
+			} while (!keyMade);
 		} else {
 			other.makeKey();
 		}
@@ -155,7 +191,8 @@ public class QKD implements Protocol {
 	
 	/**
 	 * Returns a new String consisting of the input string where only characters
-	 * at the given indices have been removed.
+	 * at the given indices have been kept. Characters are added in the order 
+	 * they are in the list
 	 * @param indices List containing the indices to keep
 	 * @param str Input string
 	 * @return String with chars at the given indices
@@ -172,27 +209,70 @@ public class QKD implements Protocol {
 	}
 	
 	/**
-	 * Runs a python script with the given args in the given anaconda env.
-	 * Relies on cmd.exe having been initialized with conda (ie conda initialize
-	 * cmd.exe has been run). As such, only works on windows.
-	 * @param scriptLocation Path to the python script
-	 * @param condaEnvName Name of conda environment to run in.
-	 * @param args Arguments to give to python script
-	 * @return A BufferedReader. It will read what the python script outputs.
-	 * It will also read stderr.
-	 * @throws IOException 
+	 * Returns a new String consisting of the input string where only characters
+	 * at the given indices have been removed. List must be sorted.
+	 * @param indices List containing the indices to keep
+	 * @param str Input string
+	 * @return String with chars at the given indices
 	 */
-	private static BufferedReader runPythonConda(String scriptLocation, 
-			String condaEnvName, String... args) throws IOException {
-		String[] initialArgs = {"cmd.exe", "/c", "conda", "activate", condaEnvName, 
-			"&&", "py", scriptLocation};
-		String[] pbArgs = new String[initialArgs.length + args.length];
-		System.arraycopy(initialArgs, 0, pbArgs, 0, initialArgs.length);
-		System.arraycopy(args, 0, pbArgs, initialArgs.length, args.length);
+	private String removeAtIndices(List<Integer> indices, String str) {
+		if (indices.size() > str.length())
+			throw new IllegalArgumentException("index list must not be longer"
+					+ "than string");
+		if (indices.isEmpty())
+			return str;
+		StringBuilder out = new StringBuilder();
+		for (int i = 0; i < str.length(); i++) {
+			if (Collections.binarySearch(indices, i) < 0) {
+				out.append(str.charAt(i));//append to the string if the index isn't in list
+			}
+		}
+		return out.toString();
+	}
+	
+	/**
+	 * Turns a bit string (String of 1s and 0s) into a byte[] of the given length.
+	 * @param str Bit string
+	 * @param numBytes Number of bytes that will be returned. str.length() must
+	 * be at least 8 times this.
+	 * @return byte[] representing the bit string.
+	 */
+	private static byte[] bitStringToArray(String str, int numBytes) {
+		if (str.length() / 8 < numBytes)
+			throw new IllegalArgumentException("String length " + str.length()
+					+ "is too short to make " + numBytes + " bytes.");
+		byte[] out = new byte[numBytes];
 		
-		ProcessBuilder pb = new ProcessBuilder(pbArgs);
-		pb.redirectErrorStream(true);
-		Process p = pb.start();
-		return new BufferedReader(new InputStreamReader(p.getInputStream()));
+		for (int i = 0; i < out.length; i++) {//for every 8 bits in the string
+			for (int j = 0, mul = 128; j < 7 && i * 8 + j < str.length(); j++, mul /= 2) {
+				//go through each bit and add to byte[]. Note that this initially
+				//multiplies by 128 then 64, etc so that the individual bits
+				//are aligned with the bit string.
+				out[i] += (str.charAt(i * 8 + j)=='0' ? 0 : 1) * mul;
+			}
+		}
+		return out;
+	}
+	
+	/**
+	 * Creates a list of indices that should be compared so that the number
+	 * of bits that are compared in a string is approximately equivalent to the
+	 * ratio parameter, in percent. 
+	 * @param ratio Percentage of indices that will be in the compared bits.
+	 * @param length Length of strings that will be compared.
+	 * @return 
+	 */
+	private static List<Integer> sampleIndices(int ratio, int length) {
+		if (ratio == 0)
+			return Arrays.asList();
+		double r = 100.0 / ratio;//figure out every how many bits of the string should be in the sample
+		if (r < 2)
+			r = 2;//prevent the sample from containing every bit
+		int everyN = (int)r;
+		List<Integer> out = new ArrayList<>();
+		for (int i = 0; i < length; i += everyN) {
+			out.add(i);
+		}
+		return out;
 	}
 }

@@ -7,8 +7,7 @@ Created on Wed Feb 10 16:14:41 2021
 from numpy.random import *
 from qiskit import QuantumCircuit, execute, Aer, IBMQ
 from qiskit.compiler import transpile, assemble
-from qiskit.tools.jupyter import *
-from qiskit.visualization import *
+import sys
 
 """So 1 represents either |1> or |->, 0 represents |0> or |+> for bits
 For the bases, 0 represents Z basis and 1 represents X basis"""
@@ -79,6 +78,12 @@ class Eavesdropper:
     
     def addBit(self, bit):
         self.receivedBits.append(bit)
+        
+    def printMeasured(self):
+        for i in self.receivedBits:
+            print(i, end='')
+        print('')
+        
 
 
 
@@ -124,6 +129,7 @@ class KeyReceiver:
     def printMeasured(self):
         for i in self.receivedBits:
             print(i, end='')
+        print('')
         
 def ReceiveData(sender, receiver, eve=None, backend = Aer.get_backend('qasm_simulator')):
     if eve is None:
@@ -181,11 +187,13 @@ def main():
     Bob = KeyReceiver(keyLength, bobBases)
     Eve = None
     
-    #if len(sys.argv) >= 4:
-    #    Eve = Eavesdropper(keyLength, listFromString(sys.argv[4]))
+    if len(sys.argv) > 4:
+        Eve = Eavesdropper(keyLength, listFromString(sys.argv[4]))
     
     ReceiveData(Alice, Bob, Eve)
     Bob.printMeasured()
+    if Eve is not None:
+        Eve.printMeasured()
     #Alice.makeKey()
     #Bob.makeKey()
     #print(Bob.aa())
