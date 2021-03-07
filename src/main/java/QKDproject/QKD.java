@@ -49,7 +49,8 @@ public class QKD implements Protocol {
 	 * shared key.
 	 * @param eavesdropper Whether or not an eavesdropper will intercept
 	 * @param securityLevel The security level. Is a percentage of the qubits
-	 * that are compared.
+	 * that are compared. It effectively makes out at 50 (if it is over 50 half
+	 * the measurements will be compared the way it is implemented now).
 	 * @param isAlice whether or not this QKD is Alice
 	 */
 	public QKD(boolean eavesdropper, int securityLevel, boolean isAlice) {
@@ -227,15 +228,6 @@ public class QKD implements Protocol {
 		return out.toString();
 	}
 	
-	
-	
-	/**
-	 * Turns a bit string (string of 1s and 0s) into a byte[]. The byte[] is 
-	 * filled in the order of the String (starting at index 0). If the string
-	 * contains anything but 1s and 0s, behavior is undefined.
-	 * @param str Bit string
-	 * @return byte[] representing the bit string
-	 */
 	private static byte[] bitStringToArray(String str) {
 		int numBytes = str.length() / 8;
 		if (numBytes * 8 < str.length())
@@ -253,6 +245,14 @@ public class QKD implements Protocol {
 		return out;
 	}
 	
+	/**
+	 * Creates a list of indices that should be compared so that the number
+	 * of bits that are compared in a string is approximately equivalent to the
+	 * ratio parameter, in percent. 
+	 * @param ratio Percentage of indices that will be in the compared bits.
+	 * @param length Length of strings that will be compared.
+	 * @return 
+	 */
 	private static List<Integer> sampleIndices(int ratio, int length) {
 		if (ratio == 0)
 			return Arrays.asList();
