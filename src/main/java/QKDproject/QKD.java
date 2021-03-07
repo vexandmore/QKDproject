@@ -89,7 +89,7 @@ public class QKD implements Protocol {
 	}
 	
 	@Override
-	public byte[] decryptMessage(byte[] encryptedMessage) {
+	public byte[] decryptMessage(byte[] encryptedMessage) throws DecryptionFailed {
 		if (key == null) {
 			makeKey();
 		}
@@ -98,8 +98,7 @@ public class QKD implements Protocol {
 			byte[] decrypted = a.decrypt(encryptedMessage, new byte[0]);
 			return decrypted;
 		} catch (GeneralSecurityException ex) {
-			System.out.println("Error\n" + ex);
-			return null;
+			throw new DecryptionFailed(ex);
 		}
 	}
 	
@@ -157,11 +156,14 @@ public class QKD implements Protocol {
 				//Now, make both keys with the unused bits
 				String alice_key = removeAtIndices(sampleIndices, aliceMatchingMeasured);
 				String bob_key = removeAtIndices(sampleIndices, bobMatchingMeasured);
-				System.out.println("alice's key: " + alice_key);
-				System.out.println("bob's key:   " + bob_key);
+				//System.out.println("alice's key: " + alice_key);
+				//System.out.println("bob's key:   " + bob_key);
 				//System.out.println("alice:" + aliceMatchingMeasured);
 				//System.out.println("bob:  " + bobMatchingMeasured);
-				//send data to other QKD
+				
+				//Make and send keys. These are not compared here
+				this.key = bitStringToArray(alice_key, KEY_SIZE);
+				other.key = bitStringToArray(bob_key, KEY_SIZE);
 			} while (!keyMade);
 		} else {
 			other.makeKey();
@@ -228,10 +230,17 @@ public class QKD implements Protocol {
 		return out.toString();
 	}
 	
-	private static byte[] bitStringToArray(String str) {
-		int numBytes = str.length() / 8;
-		if (numBytes * 8 < str.length())
-			numBytes++;//round up the number of bytes if necessary
+	/**
+	 * Turns a bit string (String of 1s and 0s) into a byte[] of the given length.
+	 * @param str Bit string
+	 * @param numBytes Number of bytes that will be returned. str.length() must
+	 * be at least 8 times this.
+	 * @return byte[] representing the bit string.
+	 */
+	private static byte[] bitStringToArray(String str, int numBytes) {
+		if (str.length() / 8 < numBytes)
+			throw new IllegalArgumentException("String length " + str.length()
+					+ "is too short to make " + numBytes + " bytes.");
 		byte[] out = new byte[numBytes];
 		
 		for (int i = 0; i < out.length; i++) {//for every 8 bits in the string
