@@ -112,6 +112,10 @@ public class QKD implements Protocol {
 				int bitsSent = (int) (KEY_SIZE * 8 * 2.5 / (1 - (securityLevel / 100)));
 				Random rand = new Random();
 				//initialize alice's bits, bases and bob's bases and eave's bases (if necessary)
+				alice_bases = "";
+				alice_bits = "";
+				bob_bases = "";
+				eve_bases = "";
 				for (int i = 0; i < bitsSent; i++) {
 					alice_bases += rand.nextBoolean() ? '1' : '0';
 					alice_bits += rand.nextBoolean() ? '1' : '0';
@@ -126,7 +130,6 @@ public class QKD implements Protocol {
 							alice_bits, alice_bases, bob_bases, eve_bases)) {
 						bob_results = in.readLine();
 						eve_results = in.readLine();
-						//System.out.println("eve: " + eve_results);
 					} catch (IOException e) {
 						System.out.println("ERROR " + e);
 					}
