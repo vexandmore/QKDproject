@@ -113,7 +113,7 @@ public class QKD implements Protocol {
 		if (isAlice) {
 			boolean keyMade = false;
 			do {
-				int bitsSent = (int) (KEY_SIZE * 8 * 2.5 / (1 - (securityLevel / 100)));
+				int bitsSent = (int) ((KEY_SIZE * 8 * 2.5) / (1 - (securityLevel / 100.0)));
 				Random rand = new Random();
 				//initialize alice's bits, bases and bob's bases and eave's bases (if necessary)
 				alice_bases = "";
@@ -153,7 +153,7 @@ public class QKD implements Protocol {
 				List<Integer> matchingMeasurements = matchingIndices(alice_bases, bob_bases);
 				String aliceMatchingMeasured = keepAtIndices(matchingMeasurements, alice_bits);
 				String bobMatchingMeasured = keepAtIndices(matchingMeasurements, bob_results);
-				List<Integer> sampleIndices = sampleIndices(aliceMatchingMeasured.length(), securityLevel);
+				List<Integer> sampleIndices = sampleIndices(securityLevel, aliceMatchingMeasured.length());
 				alice_sample = keepAtIndices(sampleIndices, aliceMatchingMeasured);
 				bob_sample = keepAtIndices(sampleIndices, bobMatchingMeasured);
 				//Compare the samples, restart if necessary
