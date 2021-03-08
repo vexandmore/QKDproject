@@ -82,7 +82,6 @@ class Eavesdropper:
     def printMeasured(self):
         for i in self.receivedBits:
             print(i, end='')
-        print('')
         
 
 
@@ -129,7 +128,6 @@ class KeyReceiver:
     def printMeasured(self):
         for i in self.receivedBits:
             print(i, end='')
-        print('')
         
 def ReceiveData(sender, receiver, eve=None, backend = Aer.get_backend('qasm_simulator')):
     if eve is None:
@@ -178,22 +176,26 @@ def listFromString(str):
     return list
 
 
-def main():    
-    keyLength = len(sys.argv[1])
-    aliceBits = listFromString(sys.argv[1])
-    aliceBases = listFromString(sys.argv[2])
-    bobBases = listFromString(sys.argv[3])
-    Alice = KeySender(keyLength, aliceBits, aliceBases)
-    Bob = KeyReceiver(keyLength, bobBases)
-    Eve = None
-    
-    if len(sys.argv) > 4:
-        Eve = Eavesdropper(keyLength, listFromString(sys.argv[4]))
-    
-    ReceiveData(Alice, Bob, Eve)
-    Bob.printMeasured()
-    if Eve is not None:
-        Eve.printMeasured()
+def main():
+    while True:
+        inArgs = input().split()
+        keyLength = len(inArgs[0])
+        aliceBits = listFromString(inArgs[0])
+        aliceBases = listFromString(inArgs[1])
+        bobBases = listFromString(inArgs[2])
+        Alice = KeySender(keyLength, aliceBits, aliceBases)
+        Bob = KeyReceiver(keyLength, bobBases)
+        Eve = None
+        
+        if len(inArgs) > 3:
+            Eve = Eavesdropper(keyLength, listFromString(inArgs[3]))
+        
+        ReceiveData(Alice, Bob, Eve)
+        Bob.printMeasured()
+        print(' ', end='')
+        if Eve is not None:
+            Eve.printMeasured()
+        print('')
     #Alice.makeKey()
     #Bob.makeKey()
     #print(Bob.aa())

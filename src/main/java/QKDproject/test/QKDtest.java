@@ -10,7 +10,6 @@ public class QKDtest {
 		QKD qkd = new QKD(false, 50, true);
 		QKD o = new QKD(false, 50, false);
 		qkd.connect(o);
-		qkd.makeKey();
 		byte[] testMessage = Protocol.stringToBytes("Hello there");
 		byte[] encrypted = qkd.encryptMessage(testMessage);
 		byte[] decrypted;
@@ -21,11 +20,10 @@ public class QKDtest {
 			System.out.println("Decryption failed");
 		}
 		
-		System.out.println("w/ eve, comparing no qubits");
+		System.out.println("\nw/ eve, comparing no qubits");
 		qkd = new QKD(true, 0, true);
 		o = new QKD(true, 0, false);
 		qkd.connect(o);
-		qkd.makeKey();
 		encrypted = qkd.encryptMessage(testMessage);
 		try {
 			decrypted = o.decryptMessage(encrypted);
@@ -34,11 +32,10 @@ public class QKDtest {
 			System.out.println("Decryption failed");
 		}
 		
-		System.out.println("w/ eve, comparing a twentieth the qubits");
-		qkd = new QKD(true, 5, true);
-		o = new QKD(true, 5, false);
+		System.out.println("\nw/ eve, comparing 1/25 of the qubits");
+		qkd = new QKD(true, 4, true);
+		o = new QKD(true, 4, false);
 		qkd.connect(o);
-		qkd.makeKey();
 		encrypted = qkd.encryptMessage(testMessage);
 		try {
 			decrypted = o.decryptMessage(encrypted);
@@ -47,11 +44,10 @@ public class QKDtest {
 			System.out.println("Decryption failed");
 		}
 		
-		System.out.println("w/ eve, comparing half the qubits");
+		System.out.println("\nw/ eve, comparing half the qubits");
 		qkd = new QKD(true, 50, true);
 		o = new QKD(true, 50, false);
 		qkd.connect(o);
-		qkd.makeKey();
 		encrypted = qkd.encryptMessage(testMessage);
 		try {
 			decrypted = o.decryptMessage(encrypted);
