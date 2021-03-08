@@ -1,14 +1,14 @@
 package QKDproject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 
 /**
- * Class that helps run python code.
+ * Class that encapsulates a running python script
  * @author Marc
  */
-public class PyUtils {
+public class PyScript {
+	private BufferedReader pyIn;
+	private PrintWriter pyOut;
 	/**
 	 * Runs a python script with the given args in the given anaconda env.
 	 * Relies on cmd.exe having been initialized with conda (ie conda initialize
@@ -16,11 +16,9 @@ public class PyUtils {
 	 * @param scriptLocation Path to the python script
 	 * @param condaEnvName Name of conda environment to run in.
 	 * @param args Arguments to give to python script
-	 * @return A BufferedReader. It will read what the python script outputs.
-	 * It will also read stderr.
 	 * @throws IOException 
 	 */
-	public static BufferedReader runPythonConda(String scriptLocation, 
+	public PyScript(String scriptLocation, 
 			String condaEnvName, String... args) throws IOException {
 		String[] initialArgs = {"cmd.exe", "/c", "conda", "activate", condaEnvName, 
 			"&&", "python", scriptLocation};
@@ -31,6 +29,20 @@ public class PyUtils {
 		ProcessBuilder pb = new ProcessBuilder(pbArgs);
 		pb.redirectErrorStream(true);
 		Process p = pb.start();
-		return new BufferedReader(new InputStreamReader(p.getInputStream()));
+		pyIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
+		pyOut = new PrintWriter(new BufferedOutputStream(p.getOutputStream()));
+	}
+	
+	/**
+	 * Gives the given String to the python process and returns the resulting
+	 * line.
+	 * @param input String passed to the process's stdin.
+	 * @return Resulting output line.
+	 * @throws IOException 
+	 */
+	public synchronized String getResults(String input) throws IOException {
+		pyOut.println(input);
+		pyOut.flush();
+		return pyIn.readLine();
 	}
 }

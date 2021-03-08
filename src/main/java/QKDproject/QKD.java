@@ -4,7 +4,6 @@ import com.google.crypto.tink.subtle.AesGcmJce;
 import java.io.*;
 import java.security.GeneralSecurityException;
 import java.util.*;
-import static QKDproject.PyUtils.runPythonConda;
 
 /**
  * Protocol that performs quantum key distribution. It is assumed that each
@@ -35,6 +34,11 @@ public class QKD implements Protocol {
 			SCRIPT_LOCATION = "error getting script location";
 		}
 	}
+	/**
+	 * This object is used to pass input and receive output from the python code
+	 * to do the quantum simulation.
+	 */
+	private static PyScript python;
 	private QKD other;
 	private final boolean isAlice;
 	private boolean eavesdropper;
@@ -126,18 +130,21 @@ public class QKD implements Protocol {
 				}
 				//send to python code and get Bob's and Eve's measurements
 				if (eavesdropper) {
-					try ( BufferedReader in = runPythonConda(SCRIPT_LOCATION, "quantum",
-							alice_bits, alice_bases, bob_bases, eve_bases)) {
-						bob_results = in.readLine();
-						eve_results = in.readLine();
+					try {
+						String[] out = getPython().getResults(alice_bits + " " 
+								+ alice_bases + " " + bob_bases + " " + 
+								eve_bases).split(" ");
+						bob_results = out[0];
+						eve_results = out[1];
 					} catch (IOException e) {
 						System.out.println("ERROR " + e);
 					}
 				} else {
 					//send to python code and get Bob's measurements
-					try ( BufferedReader in = runPythonConda(SCRIPT_LOCATION, "quantum",
-							alice_bits, alice_bases, bob_bases)) {
-						bob_results = in.readLine();
+					try {
+						String out = getPython().getResults(alice_bits + " " + 
+								alice_bases + " " + bob_bases);
+						bob_results = out;
 					} catch (IOException e) {
 						System.out.println("ERROR " + e);
 					}
@@ -153,12 +160,15 @@ public class QKD implements Protocol {
 				if (!alice_sample.equals(bob_sample)) {
 					System.out.println("Eavesdropper detected! Making key again");
 					continue;
-				} else {
-					keyMade = true;
 				}
 				//Now, make both keys with the unused bits
 				String alice_key = removeAtIndices(sampleIndices, aliceMatchingMeasured);
 				String bob_key = removeAtIndices(sampleIndices, bobMatchingMeasured);
+				//Check if the length is sufficient, if not restart
+				if (alice_key.length() < KEY_SIZE * 8) {
+					continue;
+				}
+				
 				//System.out.println("alice's key: " + alice_key);
 				//System.out.println("bob's key:   " + bob_key);
 				//System.out.println("alice:" + aliceMatchingMeasured);
@@ -167,6 +177,8 @@ public class QKD implements Protocol {
 				//Make and send keys. These are not compared here
 				this.key = bitStringToArray(alice_key, KEY_SIZE);
 				other.key = bitStringToArray(bob_key, KEY_SIZE);
+				keyMade = true;
+				
 			} while (!keyMade);
 		} else {
 			other.makeKey();
@@ -243,7 +255,7 @@ public class QKD implements Protocol {
 	private static byte[] bitStringToArray(String str, int numBytes) {
 		if (str.length() / 8 < numBytes)
 			throw new IllegalArgumentException("String length " + str.length()
-					+ "is too short to make " + numBytes + " bytes.");
+					+ " is too short to make " + numBytes + " bytes.");
 		byte[] out = new byte[numBytes];
 		
 		for (int i = 0; i < out.length; i++) {//for every 8 bits in the string
@@ -277,5 +289,11 @@ public class QKD implements Protocol {
 			out.add(i);
 		}
 		return out;
+	}
+	
+	private static PyScript getPython() throws IOException {
+		if (python == null)
+			python = new PyScript(SCRIPT_LOCATION, "quantum");
+		return python;
 	}
 }
