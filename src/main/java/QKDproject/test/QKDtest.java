@@ -32,9 +32,9 @@ public class QKDtest {
 			System.out.println("Decryption failed");
 		}
 		
-		System.out.println("\nw/ eve, comparing a twentieth the qubits");
-		qkd = new QKD(true, 5, true);
-		o = new QKD(true, 5, false);
+		System.out.println("\nw/ eve, comparing 1/25 of the qubits");
+		qkd = new QKD(true, 4, true);
+		o = new QKD(true, 4, false);
 		qkd.connect(o);
 		encrypted = qkd.encryptMessage(testMessage);
 		try {
