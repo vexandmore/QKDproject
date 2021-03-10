@@ -10,9 +10,11 @@ import java.util.*;
  * Chat instance will have one. This is because it is possible that each QKD 
  * will have a different final key, if there has been eavesdropping and no
  * security check.
+ * This class is the "Alice" one, ie it makes and sends the key to the "Bob" 
+ * class.
  * @author Marc
  */
-public class QKD implements Protocol {
+public class QKDAlice implements Protocol {
 	/**
 	 * Key used for encryption.
 	 */
@@ -20,33 +22,14 @@ public class QKD implements Protocol {
 	/**
 	 * Target final key size in bytes.
 	 */
-	private final static int KEY_SIZE = 16;
-	/**
-	 * The path of the python script. Determined at runtime by a static block.
-	 */
-	private static String SCRIPT_LOCATION;
-	static {
-		try {
-			SCRIPT_LOCATION = new File(".").getCanonicalPath() + 
-					File.separatorChar + "src" + File.separatorChar + "main" + 
-					File.separatorChar + "qkdImplementation.py";
-		} catch (IOException e) {
-			SCRIPT_LOCATION = "error getting script location";
-		}
-	}
-	/**
-	 * This object is used to pass input and receive output from the python code
-	 * to do the quantum simulation.
-	 */
-	private static PyScript python;
-	private QKD other;
-	private final boolean isAlice;
-	private boolean eavesdropper;
-	private int securityLevel;
+	public final static int KEY_SIZE = 16;
+	protected QKDBob other;
+	private final boolean eavesdropper;
+	private final int securityLevel;
 	private String alice_bits = "";
-	private String alice_bases = "", bob_bases = "", eve_bases = "";
-	private String bob_results = "", eve_results = "";
-	private String alice_sample = "", bob_sample = "";
+	private String alice_bases = "", eve_bases = "";
+	private String alice_sample = "", alice_matching_measured = "";
+	private List<Integer> sampleIndices;
 	
 	/**
 	 * Constructs a QKD with the parameters. Does not immediately determine a
@@ -55,12 +38,10 @@ public class QKD implements Protocol {
 	 * @param securityLevel The security level. Is a percentage of the qubits
 	 * that are compared. It effectively makes out at 50 (if it is over 50 half
 	 * the measurements will be compared the way it is implemented now).
-	 * @param isAlice whether or not this QKD is Alice
 	 */
-	public QKD(boolean eavesdropper, int securityLevel, boolean isAlice) {
+	public QKDAlice(boolean eavesdropper, int securityLevel) {
 		this.eavesdropper = eavesdropper;
 		this.securityLevel = securityLevel;
-		this.isAlice = isAlice;
 	}
 	
 	/**
@@ -68,11 +49,7 @@ public class QKD implements Protocol {
 	 * Alice and the other not.
 	 * @param other 
 	 */
-	public void connect(QKD other) {
-		if (!(isAlice ^ other.isAlice)) {
-			throw new IllegalArgumentException("Tried to connect two QKDs where "
-					+ "both are Alices or neither are.");
-		}
+	public void connect(QKDBob other) {
 		this.other = other;
 		other.other = this;
 	}
@@ -80,7 +57,7 @@ public class QKD implements Protocol {
 	@Override
 	public byte[] encryptMessage(byte[] message) {
 		if (key == null) {
-			makeKey();
+			other.makeKey();
 		}
 		try {
 			AesGcmJce a = new AesGcmJce(key);
@@ -95,7 +72,7 @@ public class QKD implements Protocol {
 	@Override
 	public byte[] decryptMessage(byte[] encryptedMessage) throws DecryptionFailed {
 		if (key == null) {
-			makeKey();
+			other.makeKey();
 		}
 		try {
 			AesGcmJce a = new AesGcmJce(key);
@@ -106,82 +83,70 @@ public class QKD implements Protocol {
 		}
 	}
 	
+	protected int getSecurityLevel() {
+		return securityLevel;
+	}
+	
 	/**
-	 * Makes a key.
+	 * Returns a string of Alice's bits, bases, and possibly Eve's bases (if
+	 * there is an eavesdropper).
+	 * @return 
 	 */
-	public void makeKey() {
-		if (isAlice) {
-			boolean keyMade = false;
-			do {
-				int bitsSent = (int) ((KEY_SIZE * 8 * 2.5) / (1 - (securityLevel / 100.0)));
-				Random rand = new Random();
-				//initialize alice's bits, bases and bob's bases and eave's bases (if necessary)
-				alice_bases = "";
-				alice_bits = "";
-				bob_bases = "";
-				eve_bases = "";
-				for (int i = 0; i < bitsSent; i++) {
-					alice_bases += rand.nextBoolean() ? '1' : '0';
-					alice_bits += rand.nextBoolean() ? '1' : '0';
-					bob_bases += rand.nextBoolean() ? '1' : '0';
-					if (eavesdropper) {
-						eve_bases += rand.nextBoolean() ? '1' : '0';
-					}
-				}
-				//send to python code and get Bob's and Eve's measurements
-				if (eavesdropper) {
-					try {
-						String[] out = getPython().getResults(alice_bits + " " 
-								+ alice_bases + " " + bob_bases + " " + 
-								eve_bases).split(" ");
-						bob_results = out[0];
-						eve_results = out[1];
-					} catch (IOException e) {
-						System.out.println("ERROR " + e);
-					}
-				} else {
-					//send to python code and get Bob's measurements
-					try {
-						String out = getPython().getResults(alice_bits + " " + 
-								alice_bases + " " + bob_bases);
-						bob_results = out;
-					} catch (IOException e) {
-						System.out.println("ERROR " + e);
-					}
-				}
-
-				List<Integer> matchingMeasurements = matchingIndices(alice_bases, bob_bases);
-				String aliceMatchingMeasured = keepAtIndices(matchingMeasurements, alice_bits);
-				String bobMatchingMeasured = keepAtIndices(matchingMeasurements, bob_results);
-				List<Integer> sampleIndices = sampleIndices(securityLevel, aliceMatchingMeasured.length());
-				alice_sample = keepAtIndices(sampleIndices, aliceMatchingMeasured);
-				bob_sample = keepAtIndices(sampleIndices, bobMatchingMeasured);
-				//Compare the samples, restart if necessary
-				if (!alice_sample.equals(bob_sample)) {
-					System.out.println("Eavesdropper detected! Making key again");
-					continue;
-				}
-				//Now, make both keys with the unused bits
-				String alice_key = removeAtIndices(sampleIndices, aliceMatchingMeasured);
-				String bob_key = removeAtIndices(sampleIndices, bobMatchingMeasured);
-				//Check if the length is sufficient, if not restart
-				if (alice_key.length() < KEY_SIZE * 8) {
-					continue;
-				}
-				
-				//System.out.println("alice's key: " + alice_key);
-				//System.out.println("bob's key:   " + bob_key);
-				//System.out.println("alice:" + aliceMatchingMeasured);
-				//System.out.println("bob:  " + bobMatchingMeasured);
-				
-				//Make and send keys. These are not compared here
-				this.key = bitStringToArray(alice_key, KEY_SIZE);
-				other.key = bitStringToArray(bob_key, KEY_SIZE);
-				keyMade = true;
-				
-			} while (!keyMade);
+	protected String getBitsBases() {
+		int bitsSent = (int) ((KEY_SIZE * 8 * 2.5) / (1 - (securityLevel / 100.0)));
+		Random rand = new Random();
+		//initialize alice's bits, bases and bob's bases and eave's bases (if necessary)
+		alice_bases = "";
+		alice_bits = "";
+		eve_bases = "";
+		for (int i = 0; i < bitsSent; i++) {
+			alice_bases += rand.nextBoolean() ? '1' : '0';
+			alice_bits += rand.nextBoolean() ? '1' : '0';
+			if (eavesdropper) {
+				eve_bases += rand.nextBoolean() ? '1' : '0';
+			}
+		}
+		if (eavesdropper) {
+			return alice_bits + " " + alice_bases + " " + eve_bases;
 		} else {
-			other.makeKey();
+			return alice_bits + " " + alice_bases;
+		}
+	}
+	
+	/**
+	 * Returns the indices where Alice and Bob measured in the same base.
+	 * @param bases String representing the bases Bob measured in.
+	 * @return List of the indices where Alice and Bob measured in the same base.
+	 */
+	protected List<Integer> measuredSameIndices(String bases) {
+		if (alice_bases.length() != bases.length())
+			throw new IllegalArgumentException("bases " + bases + " " + 
+					this.alice_bases + " must be same length");
+		List<Integer> matchingIndices = new ArrayList<>();
+		for (int i = 0; i < bases.length(); i++) {
+			if (this.alice_bases.charAt(i) == bases.charAt(i)) {
+				matchingIndices.add(i);
+			}
+		}
+		alice_matching_measured = keepAtIndices(matchingIndices, alice_bits);
+		return matchingIndices;
+	}
+	
+	/**
+	 * Check if the samples match. If they do, Alice and Bob both make their 
+	 * key.
+	 * @param bobSample
+	 * @return Whether or not the sample Alice has made matches Bob's.
+	 */
+	protected boolean samplesMatch(String bobSample) {
+		sampleIndices = sampleIndices(securityLevel, alice_matching_measured.length());
+		alice_sample = keepAtIndices(sampleIndices, alice_matching_measured);
+		if (alice_sample.equals(bobSample)) {
+			String aliceKey = removeAtIndices(sampleIndices, alice_matching_measured);
+			this.key = bitStringToArray(aliceKey, KEY_SIZE);
+			return true;
+		} else {
+			return alice_sample.equals(bobSample);
 		}
 	}
 	
@@ -192,7 +157,7 @@ public class QKD implements Protocol {
 	 * @param b Second string
 	 * @return List containing indices where the Strings match
 	 */
-	private static List<Integer> matchingIndices(String a, String b) {
+	public static List<Integer> matchingIndices(String a, String b) {
 		if (a.length() != b.length())
 			throw new IllegalArgumentException("Strings must be same length");
 		List<Integer> indices = new ArrayList<>();
@@ -212,7 +177,7 @@ public class QKD implements Protocol {
 	 * @param str Input string
 	 * @return String with chars at the given indices
 	 */
-	private String keepAtIndices(List<Integer> indices, String str) {
+	public static String keepAtIndices(List<Integer> indices, String str) {
 		if (indices.size() > str.length())
 			throw new IllegalArgumentException("index list must not be longer"
 					+ "than string");
@@ -230,7 +195,7 @@ public class QKD implements Protocol {
 	 * @param str Input string
 	 * @return String with chars at the given indices
 	 */
-	private String removeAtIndices(List<Integer> indices, String str) {
+	public static String removeAtIndices(List<Integer> indices, String str) {
 		if (indices.size() > str.length())
 			throw new IllegalArgumentException("index list must not be longer"
 					+ "than string");
@@ -252,7 +217,7 @@ public class QKD implements Protocol {
 	 * be at least 8 times this.
 	 * @return byte[] representing the bit string.
 	 */
-	private static byte[] bitStringToArray(String str, int numBytes) {
+	public static byte[] bitStringToArray(String str, int numBytes) {
 		if (str.length() / 8 < numBytes)
 			throw new IllegalArgumentException("String length " + str.length()
 					+ " is too short to make " + numBytes + " bytes.");
@@ -277,7 +242,7 @@ public class QKD implements Protocol {
 	 * @param length Length of strings that will be compared.
 	 * @return 
 	 */
-	private static List<Integer> sampleIndices(int ratio, int length) {
+	public static List<Integer> sampleIndices(int ratio, int length) {
 		if (ratio == 0)
 			return Arrays.asList();
 		double r = 100.0 / ratio;//figure out every how many bits of the string should be in the sample
@@ -289,11 +254,5 @@ public class QKD implements Protocol {
 			out.add(i);
 		}
 		return out;
-	}
-	
-	private static PyScript getPython() throws IOException {
-		if (python == null)
-			python = new PyScript(SCRIPT_LOCATION, "quantum");
-		return python;
 	}
 }

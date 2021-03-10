@@ -7,50 +7,50 @@ import QKDproject.*;
 public class QKDtest {
 	public static void main(String[] args) {
 		System.out.println("w/o eve");
-		QKD qkd = new QKD(false, 50, true);
-		QKD o = new QKD(false, 50, false);
-		qkd.connect(o);
+		QKDAlice alice = new QKDAlice(false, 50);
+		QKDBob bob = new QKDBob();
+		alice.connect(bob);
 		byte[] testMessage = Protocol.stringToBytes("Hello there");
-		byte[] encrypted = qkd.encryptMessage(testMessage);
+		byte[] encrypted = alice.encryptMessage(testMessage);
 		byte[] decrypted;
 		try {
-			decrypted = o.decryptMessage(encrypted);
+			decrypted = bob.decryptMessage(encrypted);
 			System.out.println("Message: " + Protocol.bytesToString(decrypted));
 		} catch (DecryptionFailed e) {
 			System.out.println("Decryption failed");
 		}
 		
 		System.out.println("\nw/ eve, comparing no qubits");
-		qkd = new QKD(true, 0, true);
-		o = new QKD(true, 0, false);
-		qkd.connect(o);
-		encrypted = qkd.encryptMessage(testMessage);
+		alice = new QKDAlice(true, 0);
+		bob = new QKDBob();
+		alice.connect(bob);
+		encrypted = alice.encryptMessage(testMessage);
 		try {
-			decrypted = o.decryptMessage(encrypted);
+			decrypted = bob.decryptMessage(encrypted);
 			System.out.println("Message: " + Protocol.bytesToString(decrypted));
 		} catch (DecryptionFailed e) {
 			System.out.println("Decryption failed");
 		}
 		
 		System.out.println("\nw/ eve, comparing 1/25 of the qubits");
-		qkd = new QKD(true, 4, true);
-		o = new QKD(true, 4, false);
-		qkd.connect(o);
-		encrypted = qkd.encryptMessage(testMessage);
+		alice = new QKDAlice(true, 4);
+		bob = new QKDBob();
+		alice.connect(bob);
+		encrypted = alice.encryptMessage(testMessage);
 		try {
-			decrypted = o.decryptMessage(encrypted);
+			decrypted = bob.decryptMessage(encrypted);
 			System.out.println("Message: " + Protocol.bytesToString(decrypted));
 		} catch (DecryptionFailed e) {
 			System.out.println("Decryption failed");
 		}
 		
 		System.out.println("\nw/ eve, comparing half the qubits");
-		qkd = new QKD(true, 50, true);
-		o = new QKD(true, 50, false);
-		qkd.connect(o);
-		encrypted = qkd.encryptMessage(testMessage);
+		alice = new QKDAlice(true, 50);
+		bob = new QKDBob();
+		alice.connect(bob);
+		encrypted = alice.encryptMessage(testMessage);
 		try {
-			decrypted = o.decryptMessage(encrypted);
+			decrypted = bob.decryptMessage(encrypted);
 			System.out.println("Message: " + Protocol.bytesToString(decrypted));
 		} catch (DecryptionFailed e) {
 			System.out.println("Decryption failed");
