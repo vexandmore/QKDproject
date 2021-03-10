@@ -65,6 +65,8 @@ public class QKDBob implements Protocol {
 		int bitsSent = (int) ((QKDAlice.KEY_SIZE * 8 * 2.5) / (1 - (other.getSecurityLevel() / 100.0)));
 		Random rand = new Random();
 		boolean keyMade = false;
+		
+		
 		while (!keyMade) {
 			String aliceData = other.getBitsBases();
 			//initialize measurement bases
@@ -72,7 +74,7 @@ public class QKDBob implements Protocol {
 			for (int i = 0; i < bitsSent; i++) {
 				bob_bases += rand.nextBoolean() ? '1' : '0';
 			}
-			//call python with alice's data and our bases
+			//call python with alice's data and our bases to get our measurements
 			try {
 				String[] out = getPython().getResults(aliceData + " "
 						+ bob_bases).split(" ");
@@ -86,11 +88,13 @@ public class QKDBob implements Protocol {
 				System.out.println("ERROR " + e);
 				return;
 			}
+			//figure out where we measured in the same basis as alice
 			List<Integer> matchingMeasurements = other.measuredSameIndices(bob_bases);
 			bob_matching_measured = QKDAlice.keepAtIndices(matchingMeasurements, bob_results);
+			//make and compare a sample
 			List<Integer> sampleIndices = QKDAlice.sampleIndices(other.getSecurityLevel(), bob_matching_measured.length());
 			String bob_sample = QKDAlice.keepAtIndices(sampleIndices, bob_matching_measured);
-			if (other.samplesMatch(bob_sample)) {
+			if (other.samplesMatch(bob_sample, sampleIndices)) {
 				//make the key here
 				String bob_key = QKDAlice.removeAtIndices(sampleIndices, bob_matching_measured);
 				key = QKDAlice.bitStringToArray(bob_key, QKDAlice.KEY_SIZE);

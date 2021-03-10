@@ -182,13 +182,16 @@ def main():
         keyLength = len(inArgs[0])
         aliceBits = listFromString(inArgs[0])
         aliceBases = listFromString(inArgs[1])
-        bobBases = listFromString(inArgs[2])
-        Alice = KeySender(keyLength, aliceBits, aliceBases)
-        Bob = KeyReceiver(keyLength, bobBases)
-        Eve = None
-        
         if len(inArgs) > 3:
-            Eve = Eavesdropper(keyLength, listFromString(inArgs[3]))
+            #have an eavesdropper
+            Eve = Eavesdropper(keyLength, listFromString(inArgs[2]))
+            bobBases = listFromString(inArgs[3])
+        else:
+            #No eavesdropper
+            bobBases = listFromString(inArgs[2])
+            Eve = None
+        Alice = KeySender(keyLength, aliceBits, aliceBases)
+        Bob = KeyReceiver(keyLength, bobBases)        
         
         ReceiveData(Alice, Bob, Eve)
         Bob.printMeasured()

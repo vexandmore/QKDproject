@@ -89,7 +89,7 @@ public class QKDAlice implements Protocol {
 	
 	/**
 	 * Returns a string of Alice's bits, bases, and possibly Eve's bases (if
-	 * there is an eavesdropper).
+	 * there is an eavesdropper) each with a space between them.
 	 * @return 
 	 */
 	protected String getBitsBases() {
@@ -135,11 +135,11 @@ public class QKDAlice implements Protocol {
 	/**
 	 * Check if the samples match. If they do, Alice and Bob both make their 
 	 * key.
-	 * @param bobSample
+	 * @param bobSample Bob's sample.
+	 * @param sampleIndices The indicies which Bob used to make his sample.
 	 * @return Whether or not the sample Alice has made matches Bob's.
 	 */
-	protected boolean samplesMatch(String bobSample) {
-		sampleIndices = sampleIndices(securityLevel, alice_matching_measured.length());
+	protected boolean samplesMatch(String bobSample, List<Integer> sampleIndices) {
 		alice_sample = keepAtIndices(sampleIndices, alice_matching_measured);
 		if (alice_sample.equals(bobSample)) {
 			String aliceKey = removeAtIndices(sampleIndices, alice_matching_measured);
