@@ -66,7 +66,8 @@ class Tester {
 		String eveResults = results[1];
 		assertM(bobResults.length() == eveResults.length(), "results must be same length");
 
-		int numberNotMatching = 0;
+		int numNotMatchingMeasurements = 0;
+		int numNotMatchingBases = 0;
 		//check if measurements line up when measurement bases line up
 		//and that bob's measurements differ when he measures in a different base from Alice
 		for (int i = 0; i < bobResults.length(); i++) {
@@ -77,14 +78,17 @@ class Tester {
 						+ " must measure the same when they measure in the"
 						+ " same base");
 			} else {
+				numNotMatchingBases++;
 				if (bobResults.charAt(i) != alice_bits.charAt(i)) {
-					numberNotMatching++;
+					numNotMatchingMeasurements++;
 				}
 			}
 		}
-		assertM(numberNotMatching > 0, 
+		assertM(numNotMatchingMeasurements > 0, 
 				"bob sometimes measures differently when measures in a different base");
-		
+		assertM(numNotMatchingBases > 0, "There should be some measurements in a adifferent base");
+		assertM(Math.abs(numNotMatchingBases/(bitsSent+0.0) - 0.75) < 0.1, 
+				"measurement bases should be different about 3/4 the time");
 
 		
 		System.out.println("Test without eavesdropper");
@@ -102,7 +106,8 @@ class Tester {
 		assertM(results.length == 1, "should only have measurements for bob");
 		assertM(bobResults.length() == alice_bases.length(), "results should be length of input bases");
 		
-		numberNotMatching = 0;
+		numNotMatchingMeasurements = 0;
+		numNotMatchingBases = 0;
 		//check if measurements line up when measurement bases line up
 		//and that bob's measurements sometimes differ when he measures in a different base from Alice
 		for (int i = 0; i < bobResults.length(); i++) {
@@ -111,12 +116,13 @@ class Tester {
 						+ " must measure the same as alice encoded when"
 						+ " encode and measure in same base");
 			} else {
+				numNotMatchingBases = 0;
 				if (bobResults.charAt(i) != alice_bits.charAt(i)) {
-					numberNotMatching++;
+					numNotMatchingMeasurements++;
 				}
 			}
 		}
-		assertM(numberNotMatching > 1, "Bob's measurement should differ from alice's prepared bits in some places");
+		assertM(numNotMatchingMeasurements > 1, "Bob's measurement should differ from alice's prepared bits in some places");
 		
 		System.out.println("Test done, " + this.numberFails + " fails and " + 
 				this.numberSuccesses + " successes.");
