@@ -5,6 +5,8 @@
  */
 package QKDproject;
 
+import javafx.beans.Observable;
+import javafx.beans.property.*;
 import javafx.fxml.FXML;
 import javafx.geometry.*;
 import javafx.scene.control.*;
@@ -22,40 +24,31 @@ public class ChatController {
 	@FXML public ScrollPane scrollPane;
 	@FXML public TextField textfield;
 	@FXML public BorderPane pane;
-	private int numberMessages = 3;
+	private int numberMessages = 0;
 	//private RowConstraints constraint;
 	
 	public ChatController() {
 	}
 	public void initialize() {
-		chatGrid.getRowConstraints().clear();
-		for (int i = 0; i < 3; i++) {
-		RowConstraints constraint = new RowConstraints();
-		constraint.setVgrow(Priority.SOMETIMES);
-		constraint.setMinHeight(100);
-		chatGrid.getRowConstraints().add(constraint);
-		}
-		//add blank 50pix row
-		/*RowConstraints constraint = new RowConstraints();
-		constraint.setVgrow(Priority.SOMETIMES);
-		constraint.setMinHeight(100);
-		chatGrid.getRowConstraints().add(constraint);
-		chatGrid.add(new Text(""), 1, numberMessages+1);
-		chatGrid.getRowConstraints().add(constraint);*/
-		
 		chatGrid.setVgap(10);
-		chatGrid.setPadding(new Insets(0, 0, 50, 0));
+		chatGrid.setPadding(new Insets(0, 0, 30, 0));
+		
+		ColumnConstraints a = new ColumnConstraints();
+		a.setPercentWidth(50);
+		ColumnConstraints b = new ColumnConstraints();
+		b.setPercentWidth(50);
+		chatGrid.getColumnConstraints().addAll(a, b);
 	}
 	@FXML
 	public void sendMessage() {
-		System.out.println(textfield.getText());
-		ChatBubble newBubble = new ChatBubble(textfield.getText());
-		chatGrid.add(newBubble, 1, numberMessages++);
+		ChatBubble newBubble = new ChatBubble(textfield.getText(), chatGrid.widthProperty());
+		int column = numberMessages % 2;
+		chatGrid.add(newBubble, column, numberMessages++);
 		
 		RowConstraints constraint = new RowConstraints();
-		//constraint.setMinHeight(100);
 		constraint.setMinHeight(newBubble.getBHeight());
-		constraint.setVgrow(Priority.ALWAYS);
+		constraint.setVgrow(Priority.NEVER);
+		
 		chatGrid.getRowConstraints().add(constraint);
 		
 		scrollPane.vvalueProperty().set(scrollPane.getVmax());
@@ -65,15 +58,23 @@ public class ChatController {
 class ChatBubble extends StackPane {
 	private Rectangle bubble;
 	private Text text;
-	public ChatBubble(String text) {
+	private ReadOnlyDoubleProperty parentWidth;
+	public ChatBubble(String text, ReadOnlyDoubleProperty width) {
 		bubble = new Rectangle();
 		bubble.setFill(Color.GREEN);
 		bubble.setStroke(Color.BLACK);
-		bubble.widthProperty().set(200);
+		bubble.widthProperty().bind(width.divide(2));
+		//bubble.widthProperty().set(200);
 		
 		this.text = new Text(text);
 		this.text.wrappingWidthProperty().bindBidirectional(bubble.widthProperty());
-		bubble.heightProperty().set(this.text.getBoundsInLocal().getHeight());
+		
+		this.text.boundsInLocalProperty().addListener(cl -> {
+			var b = (ReadOnlyObjectProperty<Bounds>)cl;
+			bubble.heightProperty().set(b.get().getHeight());
+		});
+		
+		bubble.heightProperty().set(this.text.boundsInLocalProperty().getValue().getHeight());
 		this.getChildren().addAll(bubble, this.text);
 	}
 	
