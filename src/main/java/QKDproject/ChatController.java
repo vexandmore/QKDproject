@@ -40,7 +40,7 @@ public class ChatController {
 		int column = (numberMessages+1) % 2;
 		chatGrid.add(newBubble, column, numberMessages++);
 		RowConstraints constraint = new RowConstraints();
-		constraint.setMinHeight(newBubble.getBHeight());
+		constraint.prefHeightProperty().bind(newBubble.heightProperty());
 		constraint.setVgrow(Priority.NEVER);
 		chatGrid.getRowConstraints().add(constraint);
 		//scroll to bottom
@@ -72,7 +72,7 @@ class ChatBubble extends StackPane {
 		//this.setAlignment(Pos.CENTER_RIGHT);
 	}
 	
-	public double getBHeight() {
-		return bubble.heightProperty().doubleValue();
-	}
+	/*public DoubleProperty heightProperty() {
+		return bubble.heightProperty();
+	}*/
 }
