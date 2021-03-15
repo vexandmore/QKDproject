@@ -17,16 +17,16 @@
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="457.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="QKDproject.ChatController">
    <children>
-      <BorderPane layoutX="150.0" layoutY="77.0" prefHeight="481.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <BorderPane fx:id="pane" layoutX="150.0" layoutY="77.0" prefHeight="481.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <bottom>
             <HBox alignment="CENTER" prefHeight="80.0" prefWidth="200.0" style="-fx-background-color: #228B22;" BorderPane.alignment="CENTER">
                <children>
-                  <TextField alignment="CENTER" maxWidth="1.7976931348623157E308" promptText="Type a message..." HBox.hgrow="ALWAYS">
+                  <TextField fx:id="textfield" alignment="CENTER" maxWidth="1.7976931348623157E308" promptText="Type a message..." HBox.hgrow="ALWAYS">
                      <HBox.margin>
                         <Insets right="10.0" />
                      </HBox.margin>
                   </TextField>
-                  <Button mnemonicParsing="false" text="Send" />
+                  <Button mnemonicParsing="false" onAction="#sendMessage" text="Send" />
                </children>
                <BorderPane.margin>
                   <Insets />
