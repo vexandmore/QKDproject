@@ -9,6 +9,19 @@ from qiskit import QuantumCircuit, execute, Aer, IBMQ
 from qiskit.compiler import transpile, assemble
 import sys
 
+
+def measureMessage(sendCircuits, bases, backend):
+        measurements = []
+        for i in range(len(bases)):
+            if (bases[i] == 1):
+                sendCircuits[i].h(0)
+            sendCircuits[i].measure(0,0)
+            result = execute(sendCircuits[i], backend, shots=1, memory=True).result()
+            receiver_bit = int(result.get_memory()[0])
+            measurements.append(receiver_bit)
+        return measurements
+
+
 """So 1 represents either |1> or |->, 0 represents |0> or |+> for bits
 For the bases, 0 represents Z basis and 1 represents X basis"""
 class KeySender:
@@ -32,26 +45,13 @@ class KeySender:
     def makeSendCircuits(keyData):
         circuits = []
         for i in range(len(keyData.sendBits)):
-            circuit = QuantumCircuit(1,2)
+            circuit = QuantumCircuit(1,1)
             if (keyData.sendBits[i] == 1):
-                circuit.initialize([0,1], 0)
+                circuit.x(0)
             if (keyData.sendBases[i] == 1):
                 circuit.h(0)
             circuits.append(circuit)
         return circuits
-
-    def addMatchingIndex(self, i):
-        self.matchingIndices.append(i)
-
-    def makeKey(self):
-        numMatching = len(self.matchingIndices)
-        for i in range(numMatching):
-            self.__privateKeyData.append(self.sendBits[self.matchingIndices[i]])
-        self.compareKeyData = self.__privateKeyData[:int(numMatching/2)]
-
-    def aa(self):
-        return self.__privateKeyData
-
 
 
 class Eavesdropper:
@@ -66,18 +66,19 @@ class Eavesdropper:
         self.receiveBases = bases
         self.receivedBits = []
     
-    def makeReceiveCircuits(self):
-        recCircuits = []
-        for i in range(self.num):
-            recCircuit = QuantumCircuit(1,2)
+    def measure(self, circuits, backend):
+        for i in range(len(self.receiveBases)):
             if (self.receiveBases[i] == 1):
-                recCircuit.h(0)
-            recCircuit.measure(0,1)
-            recCircuits.append(recCircuit)
-        return recCircuits
-    
-    def addBit(self, bit):
-        self.receivedBits.append(bit)
+                #if measuring in X basis, use an H before and after
+                #so that if Bob measures in X as well, should measure the same
+                circuits[i].h(0)
+                circuits[i].measure(0,0)
+                circuits[i].h(0)
+            else:
+                circuits[i].measure(0,0)
+            result = execute(circuits[i], backend, shots=1, memory=True).result()
+            receiver_bit = int(result.get_memory()[0])
+            self.receivedBits.append(receiver_bit)
         
     def printMeasured(self):
         for i in self.receivedBits:
@@ -102,33 +103,14 @@ class KeyReceiver:
         self.__privateKeyData = []
         self.compareKeyData = []
 
-    def makeReceiveCircuits(self):
-        recCircuits = []
-        for i in range(self.num):
-            recCircuit = QuantumCircuit(1,2)
-            if (self.receiveBases[i] == 1):
-                recCircuit.h(0)
-            recCircuit.measure(0,0)
-            recCircuits.append(recCircuit)
-        return recCircuits
+    def measure(self, circuits, backend):
+        self.receivedBits = measureMessage(circuits, self.receiveBases, backend)
 
-    def addBit(self, bit):
-        self.receivedBits.append(bit)
-
-    def addMatchingIndex(self, i):
-        self.matchingIndices.append(i)
-
-    def makeKey(self):
-        numMatching = len(self.matchingIndices)
-        for i in range(numMatching):
-            self.__privateKeyData.append(self.receivedBits[self.matchingIndices[i]])
-        self.compareKeyData = self.__privateKeyData[:int(numMatching/2)]
-    def aa(self):
-        return self.__privateKeyData
     def printMeasured(self):
         for i in self.receivedBits:
             print(i, end='')
-        
+
+
 def ReceiveData(sender, receiver, eve=None, backend = Aer.get_backend('qasm_simulator')):
     if eve is None:
         ReceiveDataNormal(sender, receiver, backend)
@@ -138,35 +120,13 @@ def ReceiveData(sender, receiver, eve=None, backend = Aer.get_backend('qasm_simu
 def ReceiveDataEavesdropper(sender, receiver, eve, backend):
     #Send the bits across the channel
     sendCircuits = sender.makeSendCircuits()
-    eveCircuits = eve.makeReceiveCircuits()
-    recCircuits = receiver.makeReceiveCircuits()
-    for i in range(sender.num):
-        sendAndReceive = sendCircuits[i] + eveCircuits[i] + recCircuits[i]
-        result = execute(sendAndReceive, backend, shots=1, memory=True).result()
-        receiver_bit = int(result.get_memory()[0][1:])
-        receiver.addBit(receiver_bit)
-        eve_bit = int(result.get_memory()[0][0:1])
-        eve.addBit(eve_bit)
-    #Now compare and see where the sender and receiver measured in the same base
-    for i in range(sender.num):
-        if sender.sendBases[i] == receiver.receiveBases[i]:
-            receiver.addMatchingIndex(i)
-            sender.addMatchingIndex(i)
+    eve.measure(sendCircuits, backend)
+    receiver.measure(sendCircuits, backend)
 
 def ReceiveDataNormal(sender, receiver, backend):
     #Send the bits across the channel
     sendCircuits = sender.makeSendCircuits()
-    recCircuits = receiver.makeReceiveCircuits()
-    for i in range(sender.num):
-        sendAndReceive = sendCircuits[i] + recCircuits[i]
-        result = execute(sendAndReceive, backend, shots=1, memory=True).result()
-        measured_bit = int(result.get_memory()[0])
-        receiver.addBit(measured_bit)
-    #Now compare and see where the sender and receiver measured in the same base
-    for i in range(sender.num):
-        if sender.sendBases[i] == receiver.receiveBases[i]:
-            receiver.addMatchingIndex(i)
-            sender.addMatchingIndex(i)
+    receiver.measure(sendCircuits, backend)
 
 """Turns a string containing 1s and 0s into a list of 1s and 0s"""
 def listFromString(str):
@@ -182,13 +142,17 @@ def main():
         keyLength = len(inArgs[0])
         aliceBits = listFromString(inArgs[0])
         aliceBases = listFromString(inArgs[1])
-        bobBases = listFromString(inArgs[2])
-        Alice = KeySender(keyLength, aliceBits, aliceBases)
-        Bob = KeyReceiver(keyLength, bobBases)
-        Eve = None
-        
         if len(inArgs) > 3:
-            Eve = Eavesdropper(keyLength, listFromString(inArgs[3]))
+            #have an eavesdropper
+            Eve = Eavesdropper(keyLength, listFromString(inArgs[2]))
+            bobBases = listFromString(inArgs[3])
+        else:
+            #No eavesdropper
+            bobBases = listFromString(inArgs[2])
+            Eve = None
+        
+        Alice = KeySender(keyLength, aliceBits, aliceBases)
+        Bob = KeyReceiver(keyLength, bobBases)        
         
         ReceiveData(Alice, Bob, Eve)
         Bob.printMeasured()
@@ -196,10 +160,6 @@ def main():
         if Eve is not None:
             Eve.printMeasured()
         print('')
-    #Alice.makeKey()
-    #Bob.makeKey()
-    #print(Bob.aa())
-    #print(Alice.aa())
 main()
 
 
