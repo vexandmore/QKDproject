@@ -30,7 +30,7 @@ public class ChatController {
 	}
 	public void initialize() {
 		chatGrid.setVgap(10);
-		chatGrid.setPadding(new Insets(0, 0, 30, 0));
+		chatGrid.setPadding(new Insets(0, 5, 30, 0));
 	}
 	@FXML
 	public void sendMessage() {
@@ -53,19 +53,21 @@ class ChatBubble extends StackPane {
 	private ReadOnlyDoubleProperty parentWidth;
 	public ChatBubble(String text, ReadOnlyDoubleProperty width) {
 		bubble = new Rectangle();
-		bubble.setFill(Color.GREEN);
+		bubble.setFill(Color.web("#548C54"));
 		bubble.setStroke(Color.BLACK);
 		bubble.widthProperty().bind(width.divide(2));
 		
 		this.text = new Text(text);
-		this.text.wrappingWidthProperty().bindBidirectional(bubble.widthProperty());
+		this.text.wrappingWidthProperty().bind(bubble.widthProperty().subtract(10));
 		
 		this.text.boundsInLocalProperty().addListener(cl -> {
 			var b = (ReadOnlyObjectProperty<Bounds>)cl;
-			bubble.heightProperty().set(b.get().getHeight());
+			bubble.heightProperty().set(b.get().getHeight() + 10);
 		});
 		
-		bubble.heightProperty().set(this.text.boundsInLocalProperty().getValue().getHeight());
+		bubble.heightProperty().set(this.text.boundsInLocalProperty().getValue().getHeight() + 10);
 		this.getChildren().addAll(bubble, this.text);
+		
+		this.setPadding(new Insets(5,5,5,5));
 	}
 }
