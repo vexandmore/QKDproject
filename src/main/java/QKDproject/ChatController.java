@@ -25,9 +25,15 @@ public class ChatController {
 	@FXML public TextField textfield;
 	@FXML public BorderPane pane;
 	private int numberMessages = 0;
+	private Chat chat;
 	
 	public ChatController() {
 	}
+	
+	protected void setChat(Chat c) {
+		this.chat = c;
+	}
+	
 	public void initialize() {
 		chatGrid.setVgap(10);
 		chatGrid.setPadding(new Insets(0, 5, 30, 0));
@@ -36,7 +42,8 @@ public class ChatController {
 	public void sendMessage() {
 		//make and add chat bubble
 		ChatBubble newBubble = new ChatBubble(textfield.getText(), chatGrid.widthProperty());
-		int column = (numberMessages+1) % 2;
+		//int column = (numberMessages+1) % 2;
+		int column = 1;
 		chatGrid.add(newBubble, column, numberMessages++);
 		RowConstraints constraint = new RowConstraints();
 		constraint.prefHeightProperty().bind(newBubble.heightProperty());
@@ -44,6 +51,30 @@ public class ChatController {
 		chatGrid.getRowConstraints().add(constraint);
 		//scroll to bottom
 		scrollPane.vvalueProperty().set(scrollPane.getVmax());
+		
+		chat.sendMessage(textfield.getText());
+	}
+	
+	/**
+	 * Displays the message as a message someone else sent. If message is null,
+	 * displays an error dialog.
+	 * @param message Message to display or null
+	 */
+	protected void receiveMessage(String message) {
+		if (message == null) {
+			System.out.println("error when receiving message");
+		} else {
+			//make and add chat bubble
+			ChatBubble newBubble = new ChatBubble(message, chatGrid.widthProperty());
+			int column = 0;
+			chatGrid.add(newBubble, column, numberMessages++);
+			RowConstraints constraint = new RowConstraints();
+			constraint.prefHeightProperty().bind(newBubble.heightProperty());
+			constraint.setVgrow(Priority.NEVER);
+			chatGrid.getRowConstraints().add(constraint);
+			//scroll to bottom
+			scrollPane.vvalueProperty().set(scrollPane.getVmax());
+		}
 	}
 }
 
