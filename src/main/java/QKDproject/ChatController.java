@@ -25,7 +25,6 @@ public class ChatController {
 	@FXML public TextField textfield;
 	@FXML public BorderPane pane;
 	private int numberMessages = 0;
-	//private RowConstraints constraint;
 	
 	public ChatController() {
 	}
@@ -57,7 +56,6 @@ class ChatBubble extends StackPane {
 		bubble.setFill(Color.GREEN);
 		bubble.setStroke(Color.BLACK);
 		bubble.widthProperty().bind(width.divide(2));
-		//bubble.widthProperty().set(200);
 		
 		this.text = new Text(text);
 		this.text.wrappingWidthProperty().bindBidirectional(bubble.widthProperty());
@@ -69,10 +67,5 @@ class ChatBubble extends StackPane {
 		
 		bubble.heightProperty().set(this.text.boundsInLocalProperty().getValue().getHeight());
 		this.getChildren().addAll(bubble, this.text);
-		//this.setAlignment(Pos.CENTER_RIGHT);
 	}
-	
-	/*public DoubleProperty heightProperty() {
-		return bubble.heightProperty();
-	}*/
 }
