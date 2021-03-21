@@ -68,16 +68,16 @@ public class ChatController {
 	private void showError(Throwable t) {
 		Platform.runLater(() -> {
 			Alert alert = new Alert(Alert.AlertType.ERROR);
+			String titleText = "Error";
 			if (t instanceof KeyExchangeFailure) {
-				alert.setTitle("Error exchanging key");
-				alert.setHeaderText("Error exchanging key");
+				titleText = "Error exchanging key";
 			} else if (t instanceof EncryptionException) {
-				alert.setTitle("Error encrypting");
-				alert.setHeaderText("Error encrypting");
+				titleText = "Error encrypting message";
 			} else if (t instanceof DecryptionException) {
-				alert.setTitle("Eror decrypting");
-				alert.setHeaderText("Eror decrypting");
+				titleText = "Error decrypting message";
 			}
+			alert.setTitle(titleText);
+			alert.setHeaderText(titleText);
 			alert.setContentText(t.toString());
 			alert.showAndWait();
 		});

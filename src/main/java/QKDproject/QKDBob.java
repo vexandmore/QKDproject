@@ -111,9 +111,6 @@ public class QKDBob implements Protocol {
 				String bob_key = QKDAlice.removeAtIndices(sampleIndices, bob_matching_measured);
 				key = QKDAlice.bitStringToArray(bob_key, QKDAlice.KEY_SIZE);
 				keyMade = true;
-			} else {
-				//sample shows there was eavesdropping / noise
-				//System.out.println("Eavesdropper detected! Restarting");
 			}
 		}
 		if (keyMade)
@@ -124,7 +121,7 @@ public class QKDBob implements Protocol {
 	
 	private static PyScript getPython() throws IOException {
 		if (python == null)
-			python = new PyScript(SCRIPT_LOCATION, "quantum");
+			python = new PyScript(SCRIPT_LOCATION, "quantumTest");
 		return python;
 	}
 }
