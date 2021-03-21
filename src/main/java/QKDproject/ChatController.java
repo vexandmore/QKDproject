@@ -5,6 +5,7 @@
  */
 package QKDproject;
 
+import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.property.*;
 import javafx.fxml.FXML;
@@ -52,29 +53,45 @@ public class ChatController {
 		//scroll to bottom
 		scrollPane.vvalueProperty().set(scrollPane.getVmax());
 		
-		chat.sendMessage(textfield.getText());
+		//send message to other asynchronously
+		Runnable r = () -> {
+			try {
+				chat.sendMessage(textfield.getText());
+			} catch (Throwable t) {
+				showError(t);
+			}
+		};
+		new Thread(r).start();
+		//Platform.runLater(r);
+	}
+	
+	private void showError(Throwable t) {
+		System.out.println("Error occured while sending message: " + t);
 	}
 	
 	/**
 	 * Displays the message as a message someone else sent. If message is null,
-	 * displays an error dialog.
+	 * displays an error dialog. Can be called from a thread other than the main
+	 * GUI thread (runs itself with Platform.runLater())
 	 * @param message Message to display or null
 	 */
 	protected void receiveMessage(String message) {
-		if (message == null) {
-			System.out.println("error when receiving message");
-		} else {
-			//make and add chat bubble
-			ChatBubble newBubble = new ChatBubble(message, chatGrid.widthProperty());
-			int column = 0;
-			chatGrid.add(newBubble, column, numberMessages++);
-			RowConstraints constraint = new RowConstraints();
-			constraint.prefHeightProperty().bind(newBubble.heightProperty());
-			constraint.setVgrow(Priority.NEVER);
-			chatGrid.getRowConstraints().add(constraint);
-			//scroll to bottom
-			scrollPane.vvalueProperty().set(scrollPane.getVmax());
-		}
+		Platform.runLater(() -> {
+			if (message == null) {
+				System.out.println("error when receiving message");
+			} else {
+				//make and add chat bubble
+				ChatBubble newBubble = new ChatBubble(message, chatGrid.widthProperty());
+				int column = 0;
+				chatGrid.add(newBubble, column, numberMessages++);
+				RowConstraints constraint = new RowConstraints();
+				constraint.prefHeightProperty().bind(newBubble.heightProperty());
+				constraint.setVgrow(Priority.NEVER);
+				chatGrid.getRowConstraints().add(constraint);
+				//scroll to bottom
+				scrollPane.vvalueProperty().set(scrollPane.getVmax());
+			}
+		});
 	}
 }
 

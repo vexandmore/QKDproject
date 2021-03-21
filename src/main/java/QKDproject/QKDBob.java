@@ -61,7 +61,15 @@ public class QKDBob implements Protocol {
 		}
 	}
 	
-	protected void makeKey() {
+	/**
+	 * Performs key exchange. Synchronized to prevent issues caused by the 
+	 * sharing of the python instance. Automatically quits if key has already
+	 * been made.
+	 */
+	protected synchronized void makeKey() {
+		if (key != null)
+			return;
+		
 		int bitsSent = (int) ((QKDAlice.KEY_SIZE * 8 * 2.5) / (1 - (other.getSecurityLevel() / 100.0)));
 		Random rand = new Random();
 		boolean keyMade = false;

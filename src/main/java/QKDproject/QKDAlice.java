@@ -29,7 +29,7 @@ public class QKDAlice implements Protocol {
 	private String alice_bits = "";
 	private String alice_bases = "", eve_bases = "";
 	private String alice_sample = "", alice_matching_measured = "";
-	private List<Integer> sampleIndices;
+	//private List<Integer> sampleIndices;
 	
 	/**
 	 * Constructs a QKD with the parameters. Does not immediately determine a
