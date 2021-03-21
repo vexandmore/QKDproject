@@ -6,7 +6,8 @@ import QKDproject.exception.*;
  * @author Marc
  */
 public class QKDtest {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws KeyExchangeFailure, 
+			DecryptionException, EncryptionException{
 		System.out.println("w/o eve");
 		QKDAlice alice = new QKDAlice(false, 50);
 		QKDBob bob = new QKDBob();

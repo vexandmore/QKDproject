@@ -1,6 +1,7 @@
 package QKDproject;
 import java.io.*;
 import java.util.Objects;
+import QKDproject.exception.*;
 
 /**
  * Represents 
@@ -23,10 +24,13 @@ public class Chat implements MessageReader {
 	}
 	
 	/**
-	 * Sends message to other Chat. Intended to be called from a Chat.
+	 * Sends message to other Chat.Intended to be called from a Chat.
+	 *
 	 * @param plaintext Message to be encrypted and sent.
+	 * @throws QKDproject.exception.EncryptionException
+	 * @throws QKDproject.exception.KeyExchangeFailure
 	 */
-	protected void sendMessage(String plaintext) {
+	protected void sendMessage(String plaintext) throws EncryptionException, KeyExchangeFailure {
 		channel.sendMessage(protocol.encryptMessage(Protocol.stringToBytes(plaintext)), this);
 	} 
 	

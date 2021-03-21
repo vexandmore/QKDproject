@@ -3,7 +3,7 @@ package QKDproject;
 import com.google.crypto.tink.subtle.AesGcmJce;
 import java.io.*;
 import java.security.GeneralSecurityException;
-import QKDproject.exception.DecryptionException;
+import QKDproject.exception.*;
 import java.util.*;
 
 /**
@@ -34,32 +34,23 @@ public class QKDBob implements Protocol {
 	private static PyScript python;
 	
 	@Override
-	public byte[] encryptMessage(byte[] message) {
+	public byte[] encryptMessage(byte[] message) throws KeyExchangeFailure, EncryptionException {
 		if (key == null) {
-			try {
-				makeKey();
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
+			makeKey();
 		}
 		try {
 			AesGcmJce a = new AesGcmJce(key);
 			byte[] encrypted = a.encrypt(message, new byte[0]);
 			return encrypted;
 		} catch (GeneralSecurityException ex) {
-			System.out.println("error\n" + ex);
-			return null;
+			throw new EncryptionException(ex);
 		}
 	}
 	
 	@Override
-	public byte[] decryptMessage(byte[] encryptedMessage) throws DecryptionException {
+	public byte[] decryptMessage(byte[] encryptedMessage) throws KeyExchangeFailure, DecryptionException {
 		if (key == null) {
-			try {
-				makeKey();
-			} catch(Exception e) {
-				throw new DecryptionFailed(e);
-			}
+			makeKey();
 		}
 		try {
 			AesGcmJce a = new AesGcmJce(key);
@@ -71,11 +62,13 @@ public class QKDBob implements Protocol {
 	}
 	
 	/**
-	 * Performs key exchange. Synchronized to prevent issues caused by the 
+	 * Performs key exchange.Synchronized to prevent issues caused by the
 	 * sharing of the python instance. Automatically quits if key has already
 	 * been made.
+	 *
+	 * @throws QKDproject.exception.KeyExchangeFailure
 	 */
-	protected synchronized void makeKey() throws Exception {
+	protected synchronized void makeKey() throws KeyExchangeFailure {
 		if (key != null)
 			return;
 		
@@ -92,11 +85,16 @@ public class QKDBob implements Protocol {
 				bob_bases += rand.nextBoolean() ? '1' : '0';
 			}
 			//call python with alice's data and our bases to get our measurements
-			String[] out = getPython().getResults(aliceData + " "
+			String[] out;
+			try {
+				out = getPython().getResults(aliceData + " "
 					+ bob_bases).split(" ");
+			} catch (IOException e) {
+				throw new KeyExchangeFailure("Error running python", e);
+			}
 			bob_results = out[0];
 			if (bob_results.length() != bob_bases.length()) {
-				throw new RuntimeException("error running python code");
+				throw new KeyExchangeFailure("Error running python code, result was unexpected length");
 			}
 			if (out.length > 1) {
 				eve_results = out[1];

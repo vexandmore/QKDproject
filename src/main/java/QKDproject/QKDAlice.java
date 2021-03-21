@@ -1,10 +1,9 @@
 package QKDproject;
 
 import com.google.crypto.tink.subtle.AesGcmJce;
-import java.io.*;
 import java.security.GeneralSecurityException;
 import java.util.*;
-import QKDproject.exception.DecryptionException;
+import QKDproject.exception.*;
 
 /**
  * Protocol that performs quantum key distribution. It is assumed that each
@@ -56,13 +55,9 @@ public class QKDAlice implements Protocol {
 	}
 	
 	@Override
-	public byte[] encryptMessage(byte[] message) {
+	public byte[] encryptMessage(byte[] message) throws KeyExchangeFailure, EncryptionException {
 		if (key == null) {
-			try {
-				other.makeKey();
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
+			other.makeKey();
 		}
 		try {
 			AesGcmJce a = new AesGcmJce(key);
@@ -75,13 +70,9 @@ public class QKDAlice implements Protocol {
 	}
 	
 	@Override
-	public byte[] decryptMessage(byte[] encryptedMessage) throws DecryptionException {
+	public byte[] decryptMessage(byte[] encryptedMessage) throws KeyExchangeFailure, DecryptionException {
 		if (key == null) {
-			try {
-				other.makeKey();
-			} catch (Exception e) {
-				throw new DecryptionFailed(e);
-			}
+			other.makeKey();
 		}
 		try {
 			AesGcmJce a = new AesGcmJce(key);

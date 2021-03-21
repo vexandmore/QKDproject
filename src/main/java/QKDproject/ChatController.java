@@ -6,7 +6,6 @@
 package QKDproject;
 
 import javafx.application.Platform;
-import javafx.beans.Observable;
 import javafx.beans.property.*;
 import javafx.fxml.FXML;
 import javafx.geometry.*;
@@ -15,6 +14,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
+import QKDproject.exception.*;
 
 /**
  *
@@ -57,7 +57,7 @@ public class ChatController {
 		Runnable r = () -> {
 			try {
 				chat.sendMessage(textfield.getText());
-			} catch (Throwable t) {
+			} catch (Exception t) {
 				showError(t);
 			}
 		};
@@ -68,8 +68,16 @@ public class ChatController {
 	private void showError(Throwable t) {
 		Platform.runLater(() -> {
 			Alert alert = new Alert(Alert.AlertType.ERROR);
-			//alert.setContentText(t.getMessage());
-			t.printStackTrace();
+			if (t instanceof KeyExchangeFailure) {
+				alert.setTitle("Error exchanging key");
+				alert.setHeaderText("Error exchanging key");
+			} else if (t instanceof EncryptionException) {
+				alert.setTitle("Error encrypting");
+				alert.setHeaderText("Error encrypting");
+			} else if (t instanceof DecryptionException) {
+				alert.setTitle("Eror decrypting");
+				alert.setHeaderText("Eror decrypting");
+			}
 			alert.setContentText(t.toString());
 			alert.showAndWait();
 		});
