@@ -1,5 +1,6 @@
 package QKDproject;
 import java.io.*;
+import java.util.Objects;
 
 /**
  * Represents 
@@ -15,24 +16,32 @@ public class Chat implements MessageReader {
 	public Chat(User user1, User user2, Protocol protocol, ChatController controller, CommunicationChannel channel) {
 		this.user1 = user1;
 		this.user2 = user2;
-		this.protocol = protocol;
-		this.chatView = controller;
+		this.protocol = Objects.requireNonNull(protocol, "Protocol passed must be non null");
+		this.chatView = Objects.requireNonNull(controller, "ChatController must be non null");
 		this.channel = channel;
 		this.chatView.setChat(this);
 	}
 	
+	/**
+	 * Sends message to other Chat. Intended to be called from a Chat.
+	 * @param plaintext Message to be encrypted and sent.
+	 */
 	protected void sendMessage(String plaintext) {
 		channel.sendMessage(protocol.encryptMessage(Protocol.stringToBytes(plaintext)), this);
 	} 
 	
+	/**
+	 * Decrypts and sends received message to the connected Chat instance.
+	 * @param message Encrypted data.
+	 */
 	@Override
 	public void newMessageAvailable(byte[] message) {
 		try {
 			byte[] decrypted = protocol.decryptMessage(message);
 			String plaintext = Protocol.bytesToString(decrypted);
 			chatView.receiveMessage(plaintext);
-		} catch (DecryptionFailed e) {
-			chatView.receiveMessage(null);
+		} catch (Throwable t) {
+			chatView.errorReceivingMessage(t);
 		}
 	}
 	

@@ -57,7 +57,11 @@ public class QKDAlice implements Protocol {
 	@Override
 	public byte[] encryptMessage(byte[] message) {
 		if (key == null) {
-			other.makeKey();
+			try {
+				other.makeKey();
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 		}
 		try {
 			AesGcmJce a = new AesGcmJce(key);
@@ -72,7 +76,11 @@ public class QKDAlice implements Protocol {
 	@Override
 	public byte[] decryptMessage(byte[] encryptedMessage) throws DecryptionFailed {
 		if (key == null) {
-			other.makeKey();
+			try {
+				other.makeKey();
+			} catch (Exception e) {
+				throw new DecryptionFailed(e);
+			}
 		}
 		try {
 			AesGcmJce a = new AesGcmJce(key);

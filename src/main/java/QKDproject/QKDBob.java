@@ -35,7 +35,11 @@ public class QKDBob implements Protocol {
 	@Override
 	public byte[] encryptMessage(byte[] message) {
 		if (key == null) {
-			makeKey();
+			try {
+				makeKey();
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 		}
 		try {
 			AesGcmJce a = new AesGcmJce(key);
@@ -50,7 +54,11 @@ public class QKDBob implements Protocol {
 	@Override
 	public byte[] decryptMessage(byte[] encryptedMessage) throws DecryptionFailed {
 		if (key == null) {
-			makeKey();
+			try {
+				makeKey();
+			} catch(Exception e) {
+				throw new DecryptionFailed(e);
+			}
 		}
 		try {
 			AesGcmJce a = new AesGcmJce(key);
@@ -66,7 +74,7 @@ public class QKDBob implements Protocol {
 	 * sharing of the python instance. Automatically quits if key has already
 	 * been made.
 	 */
-	protected synchronized void makeKey() {
+	protected synchronized void makeKey() throws Exception {
 		if (key != null)
 			return;
 		
@@ -83,19 +91,16 @@ public class QKDBob implements Protocol {
 				bob_bases += rand.nextBoolean() ? '1' : '0';
 			}
 			//call python with alice's data and our bases to get our measurements
-			try {
-				String[] out = getPython().getResults(aliceData + " "
-						+ bob_bases).split(" ");
-				bob_results = out[0];
-				if (bob_results.length() != bob_bases.length())
-					throw new RuntimeException("error running python code");
-				if (out.length > 1) {
-					eve_results = out[1];
-				}
-			} catch (IOException| RuntimeException e) {
-				System.out.println("ERROR " + e);
-				return;
+			String[] out = getPython().getResults(aliceData + " "
+					+ bob_bases).split(" ");
+			bob_results = out[0];
+			if (bob_results.length() != bob_bases.length()) {
+				throw new RuntimeException("error running python code");
 			}
+			if (out.length > 1) {
+				eve_results = out[1];
+			}
+			
 			//figure out where we measured in the same basis as alice
 			List<Integer> matchingMeasurements = other.measuredSameIndices(bob_bases);
 			bob_matching_measured = QKDAlice.keepAtIndices(matchingMeasurements, bob_results);

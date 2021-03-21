@@ -35,12 +35,12 @@ public class ChatController {
 		this.chat = c;
 	}
 	
-	public void initialize() {
+	private void initialize() {
 		chatGrid.setVgap(10);
 		chatGrid.setPadding(new Insets(0, 5, 30, 0));
 	}
 	@FXML
-	public void sendMessage() {
+	private void sendMessage() {
 		//make and add chat bubble
 		ChatBubble newBubble = new ChatBubble(textfield.getText(), chatGrid.widthProperty());
 		//int column = (numberMessages+1) % 2;
@@ -66,19 +66,25 @@ public class ChatController {
 	}
 	
 	private void showError(Throwable t) {
-		System.out.println("Error occured while sending message: " + t);
+		Platform.runLater(() -> {
+			Alert alert = new Alert(Alert.AlertType.ERROR);
+			//alert.setContentText(t.getMessage());
+			t.printStackTrace();
+			alert.setContentText(t.toString());
+			alert.showAndWait();
+		});
 	}
 	
 	/**
-	 * Displays the message as a message someone else sent. If message is null,
-	 * displays an error dialog. Can be called from a thread other than the main
-	 * GUI thread (runs itself with Platform.runLater())
-	 * @param message Message to display or null
+	 * Displays the message as a message someone else sent. Can be called 
+	 * from a thread other than this's GUI thread (runs itself with 
+	 * Platform.runLater())
+	 * @param message Message to display
 	 */
 	protected void receiveMessage(String message) {
 		Platform.runLater(() -> {
 			if (message == null) {
-				System.out.println("error when receiving message");
+				showError(new IllegalArgumentException("Received null message"));
 			} else {
 				//make and add chat bubble
 				ChatBubble newBubble = new ChatBubble(message, chatGrid.widthProperty());
@@ -92,6 +98,15 @@ public class ChatController {
 				scrollPane.vvalueProperty().set(scrollPane.getVmax());
 			}
 		});
+	}
+	
+	/**
+	 * Intended to be called when the Chat managing the receiving of messages
+	 * encounters an exception.
+	 * @param t Throwable that caused the error.
+	 */
+	protected void errorReceivingMessage(Throwable t) {
+		showError(t);
 	}
 }
 
