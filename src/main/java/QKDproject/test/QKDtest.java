@@ -1,5 +1,6 @@
 package QKDproject.test;
 import QKDproject.*;
+import QKDproject.exception.*;
 /**
  * Tests QKD class.
  * @author Marc
@@ -16,7 +17,7 @@ public class QKDtest {
 		try {
 			decrypted = bob.decryptMessage(encrypted);
 			System.out.println("Message: " + Protocol.bytesToString(decrypted));
-		} catch (DecryptionFailed e) {
+		} catch (DecryptionException e) {
 			System.out.println("Decryption failed");
 		}
 		
@@ -28,7 +29,7 @@ public class QKDtest {
 		try {
 			decrypted = bob.decryptMessage(encrypted);
 			System.out.println("Message: " + Protocol.bytesToString(decrypted));
-		} catch (DecryptionFailed e) {
+		} catch (DecryptionException e) {
 			System.out.println("Decryption failed");
 		}
 		
@@ -40,7 +41,7 @@ public class QKDtest {
 		try {
 			decrypted = bob.decryptMessage(encrypted);
 			System.out.println("Message: " + Protocol.bytesToString(decrypted));
-		} catch (DecryptionFailed e) {
+		} catch (DecryptionException e) {
 			System.out.println("Decryption failed");
 		}
 		
@@ -52,7 +53,7 @@ public class QKDtest {
 		try {
 			decrypted = bob.decryptMessage(encrypted);
 			System.out.println("Message: " + Protocol.bytesToString(decrypted));
-		} catch (DecryptionFailed e) {
+		} catch (DecryptionException e) {
 			System.out.println("Decryption failed");
 		}
 	}

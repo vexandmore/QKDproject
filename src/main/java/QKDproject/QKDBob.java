@@ -3,6 +3,7 @@ package QKDproject;
 import com.google.crypto.tink.subtle.AesGcmJce;
 import java.io.*;
 import java.security.GeneralSecurityException;
+import QKDproject.exception.DecryptionException;
 import java.util.*;
 
 /**
@@ -48,7 +49,7 @@ public class QKDBob implements Protocol {
 	}
 	
 	@Override
-	public byte[] decryptMessage(byte[] encryptedMessage) throws DecryptionFailed {
+	public byte[] decryptMessage(byte[] encryptedMessage) throws DecryptionException {
 		if (key == null) {
 			makeKey();
 		}
@@ -57,7 +58,7 @@ public class QKDBob implements Protocol {
 			byte[] decrypted = a.decrypt(encryptedMessage, new byte[0]);
 			return decrypted;
 		} catch (GeneralSecurityException ex) {
-			throw new DecryptionFailed(ex);
+			throw new DecryptionException(ex);
 		}
 	}
 	

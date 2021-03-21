@@ -4,6 +4,7 @@ import com.google.crypto.tink.subtle.AesGcmJce;
 import java.io.*;
 import java.security.GeneralSecurityException;
 import java.util.*;
+import QKDproject.exception.DecryptionException;
 
 /**
  * Protocol that performs quantum key distribution. It is assumed that each
@@ -70,7 +71,7 @@ public class QKDAlice implements Protocol {
 	}
 	
 	@Override
-	public byte[] decryptMessage(byte[] encryptedMessage) throws DecryptionFailed {
+	public byte[] decryptMessage(byte[] encryptedMessage) throws DecryptionException {
 		if (key == null) {
 			other.makeKey();
 		}
@@ -79,7 +80,7 @@ public class QKDAlice implements Protocol {
 			byte[] decrypted = a.decrypt(encryptedMessage, new byte[0]);
 			return decrypted;
 		} catch (GeneralSecurityException ex) {
-			throw new DecryptionFailed(ex);
+			throw new DecryptionException(ex);
 		}
 	}
 	
