@@ -77,7 +77,7 @@ public class QKDBob implements Protocol {
 		boolean keyMade = false;
 		
 		
-		while (!keyMade) {
+		for (int numAttempts = 1; numAttempts <= 5 && !keyMade; numAttempts++) {
 			String aliceData = other.getBitsBases();
 			//initialize measurement bases
 			bob_bases = "";
@@ -113,9 +113,13 @@ public class QKDBob implements Protocol {
 				keyMade = true;
 			} else {
 				//sample shows there was eavesdropping / noise
-				System.out.println("Eavesdropper detected! Restarting");
+				//System.out.println("Eavesdropper detected! Restarting");
 			}
 		}
+		if (keyMade)
+			return;
+		else
+			throw new KeyExchangeFailure("Tried 5 times and could not establish a shared key.");
 	}
 	
 	private static PyScript getPython() throws IOException {
