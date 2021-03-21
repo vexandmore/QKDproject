@@ -1,5 +1,6 @@
 package QKDproject;
 import java.nio.charset.StandardCharsets;
+import QKDproject.exception.*;
 
 /**
  * Encapsulates a key exchange and encryption protocol. Also contains utility
@@ -8,8 +9,8 @@ import java.nio.charset.StandardCharsets;
  * @author Marc
  */
 public interface Protocol {
-	public byte[] encryptMessage(byte[] message);
-	public byte[] decryptMessage(byte[] encryptedMessage) throws DecryptionFailed;
+	public byte[] encryptMessage(byte[] message) throws KeyExchangeFailure, EncryptionException;
+	public byte[] decryptMessage(byte[] encryptedMessage) throws KeyExchangeFailure, DecryptionException;
 	
 	public static byte[] stringToBytes(String str) {
 		return str.getBytes(StandardCharsets.UTF_8);
