@@ -18,7 +18,7 @@
          <bottom>
             <HBox alignment="CENTER" prefHeight="80.0" prefWidth="200.0" style="-fx-background-color: #228B22;" BorderPane.alignment="CENTER">
                <children>
-                  <TextField fx:id="textfield" alignment="CENTER" maxWidth="1.7976931348623157E308" promptText="Type a message..." HBox.hgrow="ALWAYS">
+                  <TextField fx:id="textfield" alignment="CENTER" maxWidth="1.7976931348623157E308" onKeyPressed="#handleTextFieldKeypress" promptText="Type a message..." HBox.hgrow="ALWAYS">
                      <HBox.margin>
                         <Insets right="10.0" />
                      </HBox.margin>

@@ -16,6 +16,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import QKDproject.exception.*;
+import javafx.scene.input.*;
+
 
 /**
  * Controller for the Chat window.
@@ -47,6 +49,14 @@ public class ChatController {
 	}
 	
 	@FXML
+	private void handleTextFieldKeypress(KeyEvent event) {
+		/*System.out.println("Handling event");
+		System.out.println(event.getCharacter());*/
+		if (event.getCode().equals(KeyCode.ENTER))
+			sendMessage();
+	}
+	
+	@FXML
 	private void sendMessage() {
 		/*make and add chat bubble*/
 		ChatBubble newBubble = new ChatBubble(textfield.getText(), chatGrid.widthProperty());
@@ -70,6 +80,7 @@ public class ChatController {
 			try {
 				chat.sendMessage(textfield.getText());
 				i.setProgress(ChatIndicator.Progress.SENT);
+				textfield.setText("");
 			} catch (Exception t) {
 				showError(t);
 				i.setProgress(ChatIndicator.Progress.FAILED);
