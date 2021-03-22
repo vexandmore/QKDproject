@@ -87,14 +87,15 @@ public class QKDBob implements Protocol {
 			//call python with alice's data and our bases to get our measurements
 			String[] out;
 			try {
-				out = getPython().getResults(aliceData + " "
-					+ bob_bases).split(" ");
+				out = getPython().getResults(aliceData + " " + 
+						bob_bases).split(" ");
 			} catch (IOException e) {
 				throw new KeyExchangeFailure("Error running python", e);
 			}
 			bob_results = out[0];
 			if (bob_results.length() != bob_bases.length()) {
-				throw new KeyExchangeFailure("Error running python code, result was unexpected length");
+				throw new KeyExchangeFailure("Error running python code,"
+						+ " result was unexpected length. Verify the anaconda setup.");
 			}
 			if (out.length > 1) {
 				eve_results = out[1];
@@ -121,7 +122,7 @@ public class QKDBob implements Protocol {
 	
 	private static PyScript getPython() throws IOException {
 		if (python == null)
-			python = new PyScript(SCRIPT_LOCATION, "quantumTest");
+			python = new PyScript(SCRIPT_LOCATION, "quantum");
 		return python;
 	}
 }

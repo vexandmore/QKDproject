@@ -45,7 +45,7 @@ public class Main extends Application {
 	Parent root2 = loader2.load();
 	ChatController controller2 = loader2.getController();
 	Scene scene2 = new Scene(root2);
-    stage2.setTitle("Chat window 2");
+    stage2.setTitle("Chat window 2 - Bob");
     stage2.setScene(scene2);
     stage2.show();
 	//connect it all up
