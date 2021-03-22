@@ -4,7 +4,8 @@ import java.util.Objects;
 import QKDproject.exception.*;
 
 /**
- * Represents 
+ * Controls the flow of messages; sending and receiving, loading from and 
+ * saving to a file.
  * @author Marc
  */
 public class Chat implements MessageReader {

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package QKDproject;
 
 import javafx.application.Platform;
@@ -45,13 +40,10 @@ public class ChatController {
 	
 	private void initialize() {
 		chatGrid.setVgap(10);
-		//chatGrid.setPadding(new Insets(30, 30, 30, 30));
 	}
 	
 	@FXML
 	private void handleTextFieldKeypress(KeyEvent event) {
-		/*System.out.println("Handling event");
-		System.out.println(event.getCharacter());*/
 		if (event.getCode().equals(KeyCode.ENTER))
 			sendMessage();
 	}
