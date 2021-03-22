@@ -43,24 +43,28 @@ public class ChatController {
 	
 	private void initialize() {
 		chatGrid.setVgap(10);
-		chatGrid.setPadding(new Insets(30, 30, 30, 30));
+		//chatGrid.setPadding(new Insets(30, 30, 30, 30));
 	}
 	
 	@FXML
 	private void sendMessage() {
-		//make and add chat bubble
+		/*make and add chat bubble*/
 		ChatBubble newBubble = new ChatBubble(textfield.getText(), chatGrid.widthProperty());
 		int column = 1;
 		chatGrid.add(newBubble, column, currentRow++);
-		RowConstraints constraint = new RowConstraints();
-		constraint.prefHeightProperty().bind(newBubble.heightProperty());
-		constraint.setVgrow(Priority.NEVER);
-		chatGrid.getRowConstraints().add(constraint);
+		RowConstraints bubbleConstraint = new RowConstraints();
+		bubbleConstraint.prefHeightProperty().bind(newBubble.heightProperty());
+		bubbleConstraint.setVgrow(Priority.NEVER);
+		chatGrid.getRowConstraints().add(bubbleConstraint);
 		//scroll to bottom
 		scrollPane.vvalueProperty().set(scrollPane.getVmax());
-		//make and add progress indicator
+		/*make and add progress indicator*/
 		ChatIndicator i = new ChatIndicator(ChatIndicator.Progress.STARTED);
+		RowConstraints progressConstraint = new RowConstraints();
+		progressConstraint.prefHeightProperty().bind(i.heightProperty());
+		chatGrid.getRowConstraints().add(progressConstraint);
 		chatGrid.add(i, column, currentRow++);
+		
 		//send message to other chatter asynchronously
 		Runnable r = () -> {
 			try {
@@ -144,6 +148,7 @@ class ChatBubble extends StackPane {
 		this.text = new Text(text);
 		this.text.wrappingWidthProperty().bind(bubble.widthProperty().subtract(10));
 		
+		//Make the rectangle scale in height with text
 		this.text.boundsInLocalProperty().addListener(cl -> {
 			var b = (ReadOnlyObjectProperty<Bounds>)cl;
 			bubble.heightProperty().set(b.get().getHeight() + 10);

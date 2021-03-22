@@ -61,6 +61,9 @@
                       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                     </columnConstraints>
+                     <padding>
+                        <Insets bottom="30.0" right="30.0" />
+                     </padding>
                   </GridPane>
                </content>
             </ScrollPane>
