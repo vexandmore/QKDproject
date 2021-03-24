@@ -9,7 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Text;
+import javafx.scene.text.*;
 import QKDproject.exception.*;
 import javafx.scene.input.*;
 
@@ -19,11 +19,10 @@ import javafx.scene.input.*;
  * @author Marc
  */
 public class ChatController {
-	@FXML public GridPane chatGrid;
+	@FXML public VBox chatGrid;
 	@FXML public ScrollPane scrollPane;
 	@FXML public TextField textfield;
 	@FXML public BorderPane pane;
-	private int currentRow = 0;
 	private Chat chat;
 	
 	public ChatController() {
@@ -39,7 +38,7 @@ public class ChatController {
 	}
 	
 	private void initialize() {
-		chatGrid.setVgap(10);
+		chatGrid.setSpacing(10);
 	}
 	
 	@FXML
@@ -51,28 +50,21 @@ public class ChatController {
 	@FXML
 	private void sendMessage() {
 		/*make and add chat bubble*/
-		ChatBubble newBubble = new ChatBubble(textfield.getText(), chatGrid.widthProperty());
-		int column = 1;
-		chatGrid.add(newBubble, column, currentRow++);
-		RowConstraints bubbleConstraint = new RowConstraints();
-		bubbleConstraint.prefHeightProperty().bind(newBubble.heightProperty());
-		bubbleConstraint.setVgrow(Priority.NEVER);
-		chatGrid.getRowConstraints().add(bubbleConstraint);
-		//scroll to bottom
-		scrollPane.vvalueProperty().set(scrollPane.getVmax());
+		ChatBubble newBubble = new ChatBubble(textfield.getText(), chatGrid.widthProperty(), Pos.CENTER_RIGHT);
+		chatGrid.getChildren().add(newBubble);
 		/*make and add progress indicator*/
 		ChatIndicator i = new ChatIndicator(ChatIndicator.Progress.STARTED);
-		RowConstraints progressConstraint = new RowConstraints();
-		progressConstraint.prefHeightProperty().bind(i.heightProperty());
-		chatGrid.getRowConstraints().add(progressConstraint);
-		chatGrid.add(i, column, currentRow++);
+		chatGrid.getChildren().add(i);
 		
 		//send message to other chatter asynchronously
+		String message = textfield.getText();
+		textfield.setText("");
 		Runnable r = () -> {
 			try {
-				chat.sendMessage(textfield.getText());
+				chat.sendMessage(message);
 				i.setProgress(ChatIndicator.Progress.SENT);
-				textfield.setText("");
+				//scroll to bottom
+				scrollPane.vvalueProperty().set(scrollPane.getVmax());
 			} catch (Exception t) {
 				showError(t);
 				i.setProgress(ChatIndicator.Progress.FAILED);
@@ -111,13 +103,9 @@ public class ChatController {
 				showError(new IllegalArgumentException("Received null message"));
 			} else {
 				//make and add chat bubble
-				ChatBubble newBubble = new ChatBubble(message, chatGrid.widthProperty());
+				ChatBubble newBubble = new ChatBubble(message, chatGrid.widthProperty(), Pos.CENTER_LEFT);
 				int column = 0;
-				chatGrid.add(newBubble, column, currentRow++);
-				RowConstraints constraint = new RowConstraints();
-				constraint.prefHeightProperty().bind(newBubble.heightProperty());
-				constraint.setVgrow(Priority.NEVER);
-				chatGrid.getRowConstraints().add(constraint);
+				chatGrid.getChildren().add(newBubble);
 				//scroll to bottom
 				scrollPane.vvalueProperty().set(scrollPane.getVmax());
 			}
@@ -142,12 +130,13 @@ class ChatBubble extends StackPane {
 	private Rectangle bubble;
 	private Text text;
 	private ReadOnlyDoubleProperty parentWidth;
-	public ChatBubble(String text, ReadOnlyDoubleProperty width) {
+	public ChatBubble(String text, ReadOnlyDoubleProperty width, Pos alignment) {
+		//Make bubble, bind width to chat window
 		bubble = new Rectangle();
 		bubble.setFill(Color.web("#548C54"));
 		bubble.setStroke(Color.BLACK);
 		bubble.widthProperty().bind(width.divide(2));
-		
+		//add text and bind its width
 		this.text = new Text(text);
 		this.text.wrappingWidthProperty().bind(bubble.widthProperty().subtract(10));
 		
@@ -156,10 +145,10 @@ class ChatBubble extends StackPane {
 			var b = (ReadOnlyObjectProperty<Bounds>)cl;
 			bubble.heightProperty().set(b.get().getHeight() + 10);
 		});
-		
 		bubble.heightProperty().set(this.text.boundsInLocalProperty().getValue().getHeight() + 10);
-		this.getChildren().addAll(bubble, this.text);
 		
+		this.setAlignment(alignment);
+		this.getChildren().addAll(bubble, this.text);
 		this.setPadding(new Insets(5,5,5,5));
 	}
 }
