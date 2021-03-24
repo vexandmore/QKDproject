@@ -37,8 +37,8 @@ public class ChatController {
 		this.chat = c;
 	}
 	
+	@FXML
 	private void initialize() {
-		chatGrid.setSpacing(10);
 	}
 	
 	@FXML
@@ -173,6 +173,7 @@ class ChatIndicator extends StackPane {
 		indicator = new Text();
 		this.getChildren().add(indicator);
 		this.setAlignment(Pos.CENTER_RIGHT);
+		this.setPadding(new Insets(0, 5, 5, 0));
 		setProgress(initialProgress);
 	}
 	
