@@ -139,6 +139,8 @@ class ChatBubble extends StackPane {
 		//add text and bind its width
 		this.text = new Text(text);
 		this.text.wrappingWidthProperty().bind(bubble.widthProperty().subtract(10));
+		StackPane.setMargin(this.text, new Insets(0, 5, 0, 5));
+		
 		
 		//Make the rectangle scale in height with text
 		this.text.boundsInLocalProperty().addListener(cl -> {
