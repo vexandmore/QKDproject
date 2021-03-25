@@ -43,6 +43,10 @@ public class PyScript {
 	public synchronized String getResults(String input) throws IOException {
 		pyOut.println(input);
 		pyOut.flush();
-		return pyIn.readLine();
+		long start = System.currentTimeMillis();
+		String out = pyIn.readLine();
+		long delta = System.currentTimeMillis() - start;
+		System.out.println("Time spent waiting: " + delta/1000.0);
+		return out;
 	}
 }
