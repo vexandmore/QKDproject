@@ -85,15 +85,15 @@ def main():
         
         #measure circuits for Bob (or Eve)
         else :
-            startT = time.time()#
+            #startT = time.time()#
             inArgs = lineIn.split(' ', 1)
             bases = listFromString(inArgs[0])
             qasmCircuits = json.loads(inArgs[1])
-            jsonT = time.time()#
+            #jsonT = time.time()#
             circuits = []
             for i in qasmCircuits:
                 circuits.append(QuantumCircuit.from_qasm_str(i))
-            constructT = time.time()#
+            #constructT = time.time()#
             measurements = measureMessage(circuits, bases, backend)
             measureT = time.time()
             
@@ -107,10 +107,10 @@ def main():
             print('')#final newline
             
             #print time
-            print('json time', end='')
-            print(jsonT - startT)
-            print('ctor time ', end='')
-            print(constructT - startT)
-            print('measure time', end='')
-            print(measureT - startT)
+            # print('json time', end='')
+            # print(jsonT - startT)
+            # print('ctor time ', end='')
+            # print(constructT - startT)
+            # print('measure time', end='')
+            # print(measureT - startT)
 main()
