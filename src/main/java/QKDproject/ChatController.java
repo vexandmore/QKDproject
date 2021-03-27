@@ -56,27 +56,26 @@ public class ChatController {
 		ChatIndicator i = new ChatIndicator(ChatIndicator.Progress.STARTED);
 		chatGrid.getChildren().add(i);
 		
-		//send message to other chatter asynchronously
+		//send message to other chatter asynchronously and scroll pane
 		String message = textfield.getText();
 		textfield.setText("");
-		Runnable r = () -> {
+		new Thread(() -> {
 			try {
 				chat.sendMessage(message);
 				i.setProgress(ChatIndicator.Progress.SENT);
-				//scroll to bottom
+				scrollPane.layout();
 				scrollPane.vvalueProperty().set(scrollPane.getVmax());
 			} catch (Exception t) {
 				showError(t);
 				i.setProgress(ChatIndicator.Progress.FAILED);
 			}
-		};
-		new Thread(r).start();
+		}).start();
 	}
 	
 	private void showError(Throwable t) {
 		Platform.runLater(() -> {
 			Alert alert = new Alert(Alert.AlertType.ERROR);
-			String titleText = "Error";
+			String titleText = "Unexpected Error";
 			if (t instanceof KeyExchangeFailure) {
 				titleText = "Error exchanging key";
 			} else if (t instanceof EncryptionException) {
@@ -107,6 +106,7 @@ public class ChatController {
 				int column = 0;
 				chatGrid.getChildren().add(newBubble);
 				//scroll to bottom
+				scrollPane.layout();
 				scrollPane.vvalueProperty().set(scrollPane.getVmax());
 			}
 		});
@@ -136,6 +136,8 @@ class ChatBubble extends StackPane {
 		bubble.setFill(Color.web("#548C54"));
 		bubble.setStroke(Color.BLACK);
 		bubble.widthProperty().bind(width.divide(2));
+		bubble.arcHeightProperty().set(15);
+		bubble.arcWidthProperty().set(15);
 		//add text and bind its width
 		this.text = new Text(text);
 		this.text.wrappingWidthProperty().bind(bubble.widthProperty().subtract(10));
