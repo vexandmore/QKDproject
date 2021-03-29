@@ -95,16 +95,17 @@ def main():
                 circuits.append(QuantumCircuit.from_qasm_str(i))
             #constructT = time.time()#
             measurements = measureMessage(circuits, bases, backend)
-            measureT = time.time()
+            #measureT = time.time()#
             
             #provide results
             for i in measurements:
                 print(i, end='')
             print (' ', end='')#Space
             #provide new circuits
-            for i in circuits:
-                print(json.dumps(i.qasm()), end=' ')
-            print('')#final newline
+            newQasmCircuits = []
+            for i in range(len(circuits)):
+                newQasmCircuits.append(circuits[i].qasm())
+            print(json.dumps(newQasmCircuits))
             
             #print time
             # print('json time', end='')

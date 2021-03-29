@@ -40,6 +40,7 @@ public class QKDBob2 implements Protocol {
 		
 		for (int numAttempts = 0; numAttempts < 5 && !keyMade; numAttempts++) {
 			//make measurement bases
+			bob_bases = "";
 			int bitsSent = (int) ((QKDAlice2.KEY_SIZE * 8 * 2.5) / (1 - (alice.getSecurityLevel() / 100.0)));
 			for (int i = 0; i < bitsSent; i++) {
 				bob_bases += rand.nextBoolean() ? '1' : '0';
@@ -48,6 +49,10 @@ public class QKDBob2 implements Protocol {
 			String[] pythonOutput = getPython().getResults(bob_bases + " " + circuits).split(" ", 2);
 			bob_results = pythonOutput[0];
 			if (bob_results.length() != bob_bases.length()) {
+				System.out.println("bob results: " + bob_results);
+				for (int i = 0; i < 20; i++) {
+					System.out.println(python.getResults(""));
+				}
 				throw new KeyExchangeFailure("Error running python code,"
 						+ " result was unexpected length. Verify the anaconda setup.");
 			}
@@ -62,6 +67,8 @@ public class QKDBob2 implements Protocol {
 				String bob_key = removeAtIndices(sampleIndices, bob_matching_measured);
 				key = bitStringToArray(bob_key, QKDAlice.KEY_SIZE);
 				keyMade = true;
+			} else {
+				System.out.println("Key not made, eavesdropper or noise");
 			}
 		}
 		if (keyMade)

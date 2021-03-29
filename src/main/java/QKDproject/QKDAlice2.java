@@ -15,9 +15,9 @@ import java.util.*;
  */
 public class QKDAlice2 implements Protocol {
 	private byte[] key;
-	private QKDBob2 bob;
+	protected QKDBob2 bob;
+	protected QKDChannel channel;
 	public final static int KEY_SIZE = 16;
-	private final boolean eavesdropper;
 	private final int securityLevel;
 	private String alice_bits, alice_bases, alice_circuits;
 	private String alice_sample = "", alice_matching_measured = "";
@@ -40,12 +40,11 @@ public class QKDAlice2 implements Protocol {
 	 */
 	private static PyScript python;
 
-	public QKDAlice2(QKDBob2 other, boolean eavesdropper, int securityLevel) {
+	public QKDAlice2(QKDBob2 other, QKDChannel channel, int securityLevel) {
 		this.bob = other;
 		this.bob.alice = this;
-		this.eavesdropper = eavesdropper;
 		this.securityLevel = securityLevel;
-		
+		this.channel = channel;
 	}
 	
 	protected int getSecurityLevel() {
@@ -63,8 +62,7 @@ public class QKDAlice2 implements Protocol {
 				alice_bits += rand.nextBoolean() ? '1' : '0';
 			}
 			alice_circuits = getPython().getResults(bitsSent + " " + alice_bits + " " + alice_bases);
-			bob.passCircuits(alice_circuits);
-
+			channel.passCircuitsToBob(alice_circuits);
 		} catch (IOException e) {
 			throw new KeyExchangeFailure(e);
 		}
