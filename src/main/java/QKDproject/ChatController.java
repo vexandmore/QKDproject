@@ -55,6 +55,9 @@ public class ChatController {
 		/*make and add progress indicator*/
 		ChatIndicator i = new ChatIndicator(ChatIndicator.Progress.STARTED);
 		chatGrid.getChildren().add(i);
+		//Scroll to bottom
+		scrollPane.layout();
+		scrollPane.vvalueProperty().set(scrollPane.getVmax());
 		
 		//send message to other chatter asynchronously and scroll pane
 		String message = textfield.getText();
@@ -63,8 +66,6 @@ public class ChatController {
 			try {
 				chat.sendMessage(message);
 				i.setProgress(ChatIndicator.Progress.SENT);
-				scrollPane.layout();
-				scrollPane.vvalueProperty().set(scrollPane.getVmax());
 			} catch (Exception t) {
 				showError(t);
 				i.setProgress(ChatIndicator.Progress.FAILED);
