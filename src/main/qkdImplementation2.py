@@ -2,11 +2,16 @@
 """
 This script provides the Alice with her circuits (based on the number of bits
 , the bits, and the bases.)
-Bits and bases are passed to stdin as space-separated bistrings.
-Circuits are returned as json-wrapped qasm.
+Input format: number of bits bits bases
+[Bits and bases are passed to stdin as bistrings, number of bits is passed as
+ an integer]
+Circuits are returned as a json-wrapped list of qasm.
 
-And also acts as a way to measure the circuits. (pass in bases as bitstring,
-followed by a space, followed by json consisting in a list of qasm strings.)
+And also acts as a way to measure the circuits. (with measurement bases and 
+                                                 circuits)
+Input format: bases circuits
+pass in bases as bitstring, followed by a space, followed by json consisting 
+in a list of qasm strings.
 @author: Marc
 """
 
@@ -63,7 +68,30 @@ class KeySender:
             circuits.append(circuit)
         return circuits
 
-
+def parseQasm(qasm):
+    list = qasm.split("\n")
+    if list.pop(0) != "OPENQASM 2.0;":
+        raise Exception('bad qasm string on line 1')
+    if list.pop(0) != "include \"qelib1.inc\";":
+        raise Exception('bad qasm string on line 2')
+    #check the number of quantum and classical bits and create circuit
+    qreg = int(list.pop(0)[-3])
+    creg = int(list.pop(0)[-3])
+    circuit = QuantumCircuit(qreg, creg)
+    for i in list:
+        sub = i.split(' ')
+        if sub[0] == "h":
+            circuit.h(int(sub[1][-3]))
+        elif sub[0] == "x":
+            circuit.x(int(sub[1][-3]))
+        elif sub[0] == "measure":
+            circuit.measure(int(sub[1][-2]), int(sub[3][-3]))
+        elif sub[0] == '':
+            pass
+        else:
+            raise Exception('unknown token ' + sub[0] + ' in qasm')
+    return circuit
+    
 
 def main():
     backend = Aer.get_backend('qasm_simulator')
@@ -84,18 +112,15 @@ def main():
             print(json.dumps(qasmCircuits))
         
         #measure circuits for Bob (or Eve)
-        else :
-            #startT = time.time()#
+        else :  
             inArgs = lineIn.split(' ', 1)
             bases = listFromString(inArgs[0])
             qasmCircuits = json.loads(inArgs[1])
-            #jsonT = time.time()#
             circuits = []
             for i in qasmCircuits:
-                circuits.append(QuantumCircuit.from_qasm_str(i))
-            #constructT = time.time()#
+                circuits.append(parseQasm(i))
+                #circuits.append(QuantumCircuit.from_qasm_str(i))
             measurements = measureMessage(circuits, bases, backend)
-            #measureT = time.time()#
             
             #provide results
             for i in measurements:
@@ -106,12 +131,4 @@ def main():
             for i in range(len(circuits)):
                 newQasmCircuits.append(circuits[i].qasm())
             print(json.dumps(newQasmCircuits))
-            
-            #print time
-            # print('json time', end='')
-            # print(jsonT - startT)
-            # print('ctor time ', end='')
-            # print(constructT - startT)
-            # print('measure time', end='')
-            # print(measureT - startT)
 main()
