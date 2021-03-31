@@ -15,7 +15,10 @@ def measureMessage(sendCircuits, bases, backend):
         for i in range(len(bases)):
             if (bases[i] == 1):
                 sendCircuits[i].h(0)
-            sendCircuits[i].measure(0,0)
+                sendCircuits[i].measure(0,0)
+                sendCircuits[i].h(0)
+            else:
+                sendCircuits[i].measure(0,0)
             result = execute(sendCircuits[i], backend, shots=1, memory=True).result()
             receiver_bit = int(result.get_memory()[0])
             measurements.append(receiver_bit)
@@ -67,18 +70,19 @@ class Eavesdropper:
         self.receivedBits = []
     
     def measure(self, circuits, backend):
-        for i in range(len(self.receiveBases)):
-            if (self.receiveBases[i] == 1):
-                #if measuring in X basis, use an H before and after
-                #so that if Bob measures in X as well, should measure the same
-                circuits[i].h(0)
-                circuits[i].measure(0,0)
-                circuits[i].h(0)
-            else:
-                circuits[i].measure(0,0)
-            result = execute(circuits[i], backend, shots=1, memory=True).result()
-            receiver_bit = int(result.get_memory()[0])
-            self.receivedBits.append(receiver_bit)
+        self.receivedBits = measureMessage(circuits, self.receiveBases, backend)
+        # for i in range(len(self.receiveBases)):
+        #     if (self.receiveBases[i] == 1):
+        #         #if measuring in X basis, use an H before and after
+        #         #so that if Bob measures in X as well, should measure the same
+        #         circuits[i].h(0)
+        #         circuits[i].measure(0,0)
+        #         circuits[i].h(0)
+        #     else:
+        #         circuits[i].measure(0,0)
+        #     result = execute(circuits[i], backend, shots=1, memory=True).result()
+        #     receiver_bit = int(result.get_memory()[0])
+        #     self.receivedBits.append(receiver_bit)
         
     def printMeasured(self):
         for i in self.receivedBits:

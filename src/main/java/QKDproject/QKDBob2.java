@@ -68,7 +68,7 @@ public class QKDBob2 implements Protocol {
 				key = bitStringToArray(bob_key, QKDAlice.KEY_SIZE);
 				keyMade = true;
 			} else {
-				System.out.println("Key not made, eavesdropper or noise");
+				//System.out.println("Key not made, eavesdropper or noise");
 			}
 		}
 		if (keyMade)

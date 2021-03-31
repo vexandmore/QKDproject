@@ -7,11 +7,14 @@ Input format: number of bits bits bases
  an integer]
 Circuits are returned as a json-wrapped list of qasm.
 
+
 And also acts as a way to measure the circuits. (with measurement bases and 
                                                  circuits)
 Input format: bases circuits
 pass in bases as bitstring, followed by a space, followed by json consisting 
 in a list of qasm strings.
+Measurements are returned as a bitstring, followed by a space, followed by
+the new qasm circuits
 @author: Marc
 """
 
@@ -22,13 +25,16 @@ from qiskit.compiler import transpile, assemble
 import sys
 import time
 
-
+"""Measures message in bases."""
 def measureMessage(sendCircuits, bases, backend):
         measurements = []
         for i in range(len(bases)):
             if (bases[i] == 1):
                 sendCircuits[i].h(0)
-            sendCircuits[i].measure(0,0)
+                sendCircuits[i].measure(0,0)
+                sendCircuits[i].h(0)
+            else:
+                sendCircuits[i].measure(0,0)
             result = execute(sendCircuits[i], backend, shots=1, memory=True).result()
             receiver_bit = int(result.get_memory()[0])
             measurements.append(receiver_bit)
