@@ -18,7 +18,16 @@ public class Main extends Application {
 	
 	@Override // Override the start method in the Application class
   public void start(Stage stage) throws Exception {
-    //create protocols
+	  FXMLLoader loader = new FXMLLoader(getClass().getResource("ControlUsers.fxml"));
+		Parent root = loader.load();
+		Scene scene = new Scene(root);
+		stage.setTitle("Controller");
+		stage.setScene(scene);
+		stage.show();
+	  
+	  
+    /*
+	//create protocols
 	QKDAlice p1 = new QKDAlice(false, 50);
 	QKDBob p2 = new QKDBob();
 	p1.connect(p2);
@@ -48,7 +57,7 @@ public class Main extends Application {
 	Chat chat2 = new Chat(user2, user1, p2, controller2, channel);
 	channel.addListener(chat1);
 	channel.addListener(chat2);
-	
+	*/
   }
   
   public static void main(String[] args) {
