@@ -4,10 +4,12 @@ import javafx.fxml.FXML;
 import javafx.scene.layout.*;
 import java.util.*;
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 import javafx.scene.control.*;
 import javafx.collections.*;
 import javafx.collections.ListChangeListener.Change;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.Node;
 
 /**
@@ -46,18 +48,34 @@ public class ControlUsersController {
 					otherUsers.addAll(c.getAddedSubList());
 				}
 			});
-			//Create and place dropdown
+			
 			numUsers++;
 			GridPane.setRowIndex(addButton, numUsers+1);//Move add button
-			grid.add(new Label(newUser.getName()), 0, numUsers);
+			//Create dropdown
 			ComboBox<User> userCombo = new ComboBox<>();
-			grid.add(userCombo, 1, numUsers);
 			userCombo.setItems(otherUsers);
 			//Add HashMap in the encryptionSettings HashMap
 			encryptionSettings.put(newUser, new HashMap<>());
 			//Create and place GUI components for changing the encryption settings
-			guiComponents.put(newUser, new EncryptionGuis(userCombo, encryptionSettings.get(newUser)));
-			grid.addRow(numUsers, guiComponents.get(newUser).nodesArr);
+			EncryptionGuis gui = new EncryptionGuis(newUser, userCombo);
+			guiComponents.put(newUser, gui);
+			grid.addRow(numUsers, gui.nodesArr);
+			//Make Apply button actually change the encryption settings
+			gui.setOnApply(eh -> {
+				gui.getState().ifPresentOrElse(params -> {
+					//Change encryption settings
+					encryptionSettings.get(newUser).put(userCombo.getValue(), params);
+					encryptionSettings.get(userCombo.getValue()).put(newUser, params);
+					//Update GUI, in case the reflexive case is selected
+					if (newUser.equals(guiComponents.get(userCombo.getValue()).getSelected())) {
+						guiComponents.get(userCombo.getValue()).setState(params);
+					}
+				}, () -> {
+					Alert a = new Alert(Alert.AlertType.ERROR);
+					a.setContentText("Invalid settings for encryption");
+					a.showAndWait();
+				});
+			});
 			
 			//Set the action for the user dropdown
 			userCombo.setOnAction((ActionEvent ae) -> {
@@ -86,29 +104,30 @@ enum EncryptionType {
  * @author Marc
  */
 class EncryptionGuis {
-	private final ComboBox typeSelector;
+	private final Label thisUserLabel;
+	private final ComboBox userSelector, typeSelector;
 	private final CheckBox eavesdropperSelector;
 	private final TextField securitySelector;
 	private final Button applyBtn;
 	public final List<Node> nodes;
 	public final Node[] nodesArr;
+	private Pattern numberPattern = Pattern.compile("\\d+\\.\\d+|\\d+");
 	
-	public EncryptionGuis(ComboBox<User> userCombo, HashMap<User, EncryptionParameters> hm) {
+	public EncryptionGuis(User thisUser, ComboBox cb) {
+		this.thisUserLabel = new Label(thisUser.getName());
+		this.userSelector = cb;
 		typeSelector = new ComboBox();
 		typeSelector.setItems(FXCollections.observableArrayList(EncryptionType.QKD, EncryptionType.QKA));
 		eavesdropperSelector = new CheckBox();
 		applyBtn = new Button("Apply");
 		securitySelector = new TextField();
-		nodesArr = new Node[] {typeSelector, securitySelector, eavesdropperSelector, applyBtn};
-		nodes = Arrays.asList(nodesArr);
-		//Make code to change encryption parameters when apply button is pressed
-		applyBtn.setOnAction((eh) -> {
-			EncryptionParameters newParams = new EncryptionParameters(
-					(EncryptionType)(typeSelector.getSelectionModel().getSelectedItem()), 
-					(boolean) eavesdropperSelector.selectedProperty().get(), 
-					Double.parseDouble(securitySelector.getText()));
-			hm.put(userCombo.getValue(), newParams);
-		});
+		nodesArr = new Node[] {thisUserLabel, userSelector, typeSelector, 
+			securitySelector, eavesdropperSelector, applyBtn};
+		nodes = Collections.unmodifiableList(Arrays.asList(nodesArr));
+	}
+	
+	public void setOnApply(EventHandler<ActionEvent> eh) {
+		applyBtn.setOnAction(eh);
 	}
 	
 	public void reset() {
@@ -117,21 +136,34 @@ class EncryptionGuis {
 		securitySelector.clear();
 	}
 	
+	/**
+	 * Make the GUI components reflect the state of the given parameters.
+	 * @param params Encryption parameters to make this display.
+	 */
 	public void setState(EncryptionParameters params) {
 		this.typeSelector.getSelectionModel().select(params.type);
 		this.eavesdropperSelector.selectedProperty().set(params.eavesdropped);
 		this.securitySelector.setText(params.security + "");
 	}
 	
+	/**
+	 * Get the encryption parameters that this gui components represent (or
+	 * an empty Optional).
+	 * @return Optional of the encryption parameters represented by this, or an empty.
+	 */
 	public Optional<EncryptionParameters> getState() {
 		if (typeSelector.getSelectionModel().getSelectedIndex() == -1
-				|| securitySelector.getText().equals("")) {
+				|| !numberPattern.matcher(securitySelector.getText()).matches()) {
 			return Optional.empty();
 		}
 		return Optional.of(new EncryptionParameters(
 				(EncryptionType) (typeSelector.getSelectionModel().getSelectedItem()),
 				(boolean) eavesdropperSelector.selectedProperty().get(),
 				Double.parseDouble(securitySelector.getText())));
+	}
+	
+	public User getSelected() {
+		return (User) userSelector.getSelectionModel().getSelectedItem();
 	}
 }
 
