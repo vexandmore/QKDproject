@@ -50,7 +50,6 @@ public class ControlUsersController {
 			});
 			
 			numUsers++;
-			GridPane.setRowIndex(addButton, numUsers+1);//Move add button
 			//Create dropdown
 			ComboBox<User> userCombo = new ComboBox<>();
 			userCombo.setItems(otherUsers);
