@@ -3,13 +3,11 @@ package QKDproject;
 import javafx.fxml.FXML;
 import javafx.scene.layout.*;
 import java.util.*;
-import java.util.ArrayList;
 import java.util.regex.Pattern;
 import javafx.scene.control.*;
 import javafx.collections.*;
 import javafx.collections.ListChangeListener.Change;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+import javafx.event.*;
 import javafx.scene.Node;
 
 /**
@@ -23,6 +21,7 @@ public class ControlUsersController {
 	@FXML private GridPane grid;
 	@FXML private Button addButton;
 	private int numUsers = 0;
+	private final static ButtonType RETRY = new ButtonType("Retry");
 	
 	public ControlUsersController() {	
 	}
@@ -36,9 +35,18 @@ public class ControlUsersController {
 		TextInputDialog dialog = new TextInputDialog();
 		dialog.setContentText("Enter user name");
 		dialog.showAndWait().ifPresent(username -> {
-			//Add user to grid if non-empty username given
-			if (username.trim().equals(""))
+			username = username.trim();
+			//If given username is empty or corresponds to an existing user, don't add it
+			if (!validUsername(username)) {
+				new Alert(Alert.AlertType.ERROR, "Username is empty or corresponds"
+						+ " to an existing user.", RETRY, ButtonType.CANCEL)
+						.showAndWait().ifPresent(bt -> {
+							if (bt.equals(RETRY))
+								newUser();//Ask for username again if user presses "retry"
+						});
 				return;
+			}
+				
 			//Create User and related Collections
 			User newUser = new User(username);
 			ObservableList<User> otherUsers = FXCollections.observableList(new ArrayList<>(users));
@@ -70,9 +78,8 @@ public class ControlUsersController {
 						guiComponents.get(userCombo.getValue()).setState(params);
 					}
 				}, () -> {
-					Alert a = new Alert(Alert.AlertType.ERROR);
-					a.setContentText("Invalid settings for encryption");
-					a.showAndWait();
+					new Alert(Alert.AlertType.ERROR, 
+							"Invalid settings for encryption").showAndWait();
 				});
 			});
 			
@@ -89,6 +96,15 @@ public class ControlUsersController {
 				
 			});
 		});
+	}
+	
+	private boolean validUsername(String username) {
+		if (username.equals(""))
+			return false;
+		for (User u : users)
+			if (u.getName().trim().equals(username))
+				return false;
+		return true;
 	}
 }
 
@@ -110,7 +126,7 @@ class EncryptionGuis {
 	private final Button applyBtn;
 	public final List<Node> nodes;
 	public final Node[] nodesArr;
-	private Pattern numberPattern = Pattern.compile("\\d+\\.\\d+|\\d+");
+	private final Pattern numberPattern = Pattern.compile("\\d+\\.\\d+|\\d+");
 	
 	public EncryptionGuis(User thisUser, ComboBox cb) {
 		this.thisUserLabel = new Label(thisUser.getName());
@@ -147,7 +163,7 @@ class EncryptionGuis {
 	
 	/**
 	 * Get the encryption parameters that this gui components represent (or
-	 * an empty Optional).
+	 * an empty Optional if they don't represent valid encryption parameters).
 	 * @return Optional of the encryption parameters represented by this, or an empty.
 	 */
 	public Optional<EncryptionParameters> getState() {
