@@ -9,6 +9,9 @@ import javafx.collections.*;
 import javafx.collections.ListChangeListener.Change;
 import javafx.event.*;
 import javafx.scene.Node;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.stage.Stage;
 
 /**
  * JavaFX Controller for the Control Users window.
@@ -19,9 +22,8 @@ public class ControlUsersController {
 	private HashMap<User, HashMap<User, EncryptionParameters>> encryptionSettings = new HashMap<>();
 	private HashMap<User, EncryptionGuis> guiComponents = new HashMap<>();
 	@FXML private GridPane grid;
-	@FXML private Button addButton;
+	@FXML private TextField usernameField;
 	private int numUsers = 0;
-	private final static ButtonType RETRY = new ButtonType("Retry");
 	
 	public ControlUsersController() {	
 	}
@@ -30,72 +32,73 @@ public class ControlUsersController {
 	private void initialize() {
 	}
 	
-	@FXML private void newUser(){
+	@FXML
+	private void handleKeypress(KeyEvent ke) {
+		if (ke.getCode().equals(KeyCode.ENTER))
+			newUser();
+	}
+	
+	@FXML
+	private void newUser() {
 		//Get username
-		TextInputDialog dialog = new TextInputDialog();
-		dialog.setContentText("Enter user name");
-		dialog.showAndWait().ifPresent(username -> {
-			username = username.trim();
-			//If given username is empty or corresponds to an existing user, don't add it
-			if (!validUsername(username)) {
-				new Alert(Alert.AlertType.ERROR, "Username is empty or corresponds"
-						+ " to an existing user.", RETRY, ButtonType.CANCEL)
-						.showAndWait().ifPresent(bt -> {
-							if (bt.equals(RETRY))
-								newUser();//Ask for username again if user presses "retry"
-						});
-				return;
+		String username = usernameField.getText().trim();
+		usernameField.clear();
+		//If given username is empty or corresponds to an existing user, tell user and don't add it.
+		if (!validUsername(username)) {
+			new Alert(Alert.AlertType.ERROR, "Username is empty or corresponds"
+					+ " to an existing user.").showAndWait();
+			return;
+		}
+
+		//Create User and related Collections [for the dropdown]
+		User newUser = new User(username);
+		ObservableList<User> otherUsers = FXCollections.observableList(new ArrayList<>(users));
+		users.add(newUser);
+		users.addListener((Change<? extends User> c) -> {
+			if (c.next()) {
+				otherUsers.addAll(c.getAddedSubList());
 			}
-				
-			//Create User and related Collections
-			User newUser = new User(username);
-			ObservableList<User> otherUsers = FXCollections.observableList(new ArrayList<>(users));
-			users.add(newUser);
-			users.addListener((Change<? extends User> c) -> {
-				if (c.next()) {
-					otherUsers.addAll(c.getAddedSubList());
+		});
+
+		numUsers++;
+		//Create dropdown
+		ComboBox<User> userCombo = new ComboBox<>();
+		userCombo.setItems(otherUsers);
+		//Add HashMap in the encryptionSettings HashMap
+		encryptionSettings.put(newUser, new HashMap<>());
+		//Create and place GUI components for changing the encryption settings
+		EncryptionGuis gui = new EncryptionGuis(newUser, userCombo);
+		guiComponents.put(newUser, gui);
+		grid.addRow(numUsers, gui.nodesArr);
+		//Make Apply button actually change the encryption settings
+		gui.setOnApply(eh -> {
+			gui.getState().ifPresentOrElse(params -> {
+				//Change encryption settings
+				encryptionSettings.get(newUser).put(userCombo.getValue(), params);
+				encryptionSettings.get(userCombo.getValue()).put(newUser, params);
+				//Update GUI, in case the reflexive case is selected
+				if (newUser.equals(guiComponents.get(userCombo.getValue()).getSelected())) {
+					guiComponents.get(userCombo.getValue()).setState(params);
 				}
-			});
-			
-			numUsers++;
-			//Create dropdown
-			ComboBox<User> userCombo = new ComboBox<>();
-			userCombo.setItems(otherUsers);
-			//Add HashMap in the encryptionSettings HashMap
-			encryptionSettings.put(newUser, new HashMap<>());
-			//Create and place GUI components for changing the encryption settings
-			EncryptionGuis gui = new EncryptionGuis(newUser, userCombo);
-			guiComponents.put(newUser, gui);
-			grid.addRow(numUsers, gui.nodesArr);
-			//Make Apply button actually change the encryption settings
-			gui.setOnApply(eh -> {
-				gui.getState().ifPresentOrElse(params -> {
-					//Change encryption settings
-					encryptionSettings.get(newUser).put(userCombo.getValue(), params);
-					encryptionSettings.get(userCombo.getValue()).put(newUser, params);
-					//Update GUI, in case the reflexive case is selected
-					if (newUser.equals(guiComponents.get(userCombo.getValue()).getSelected())) {
-						guiComponents.get(userCombo.getValue()).setState(params);
-					}
-				}, () -> {
-					new Alert(Alert.AlertType.ERROR, 
-							"Invalid settings for encryption").showAndWait();
-				});
-			});
-			
-			//Set the action for the user dropdown
-			userCombo.setOnAction((ActionEvent ae) -> {
-				User selected = userCombo.getSelectionModel().getSelectedItem();
-				//Set gui components to default state or the current encryption 
-				//settings between newUser and selected
-				if (encryptionSettings.get(newUser).containsKey(selected)) {
-					guiComponents.get(newUser).setState(encryptionSettings.get(newUser).get(selected));
-				} else {
-					guiComponents.get(newUser).reset();
-				}
-				
+			}, () -> {
+				new Alert(Alert.AlertType.ERROR,
+						"Invalid settings for encryption").showAndWait();
 			});
 		});
+
+		//Set the action for the user dropdown
+		userCombo.setOnAction((ActionEvent ae) -> {
+			User selected = userCombo.getSelectionModel().getSelectedItem();
+			//Set gui components to default state or the current encryption 
+			//settings between newUser and selected
+			if (encryptionSettings.get(newUser).containsKey(selected)) {
+				guiComponents.get(newUser).setState(encryptionSettings.get(newUser).get(selected));
+			} else {
+				guiComponents.get(newUser).reset();
+			}
+
+		});
+
 	}
 	
 	private boolean validUsername(String username) {
@@ -124,9 +127,8 @@ class EncryptionGuis {
 	private final CheckBox eavesdropperSelector;
 	private final TextField securitySelector;
 	private final Button applyBtn;
-	public final List<Node> nodes;
 	public final Node[] nodesArr;
-	private final Pattern numberPattern = Pattern.compile("\\d+\\.\\d+|\\d+");
+	private final static Pattern numberPattern = Pattern.compile("\\d+\\.\\d+|\\d+");
 	
 	public EncryptionGuis(User thisUser, ComboBox cb) {
 		this.thisUserLabel = new Label(thisUser.getName());
@@ -138,7 +140,6 @@ class EncryptionGuis {
 		securitySelector = new TextField();
 		nodesArr = new Node[] {thisUserLabel, userSelector, typeSelector, 
 			securitySelector, eavesdropperSelector, applyBtn};
-		nodes = Collections.unmodifiableList(Arrays.asList(nodesArr));
 	}
 	
 	public void setOnApply(EventHandler<ActionEvent> eh) {
