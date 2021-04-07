@@ -5,6 +5,7 @@ import static QKDproject.QKDAlice.keepAtIndices;
 import static QKDproject.QKDAlice.removeAtIndices;
 import QKDproject.exception.*;
 import com.google.crypto.tink.subtle.AesGcmJce;
+import org.jasypt.commons.CommonUtils;
 import java.io.*;
 import java.security.GeneralSecurityException;
 import java.util.*;

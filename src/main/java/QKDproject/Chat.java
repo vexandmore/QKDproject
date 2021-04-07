@@ -24,6 +24,18 @@ public class Chat implements MessageReader {
 		this.chatView.setChat(this);
 	}
 	
+	public User getUser1() {
+		return user1;
+	}
+	
+	public User getUser2() {
+		return user2;
+	}
+	
+	protected void changeProtocol(Protocol newProtocol) {
+		this.protocol = newProtocol;
+	}
+	
 	/**
 	 * Sends message to other Chat.Intended to be called from a Chat.
 	 *

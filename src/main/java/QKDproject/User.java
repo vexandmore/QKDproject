@@ -1,6 +1,9 @@
 package QKDproject;
 
-import java.util.Objects;
+import java.util.*;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.*;
+import javafx.stage.*;
 
 /**
  * Represents a user.
@@ -8,6 +11,7 @@ import java.util.Objects;
  */
 public class User {
 	private String name;
+	private List<Chat> chatWindows = new ArrayList<>();
 	
 	public User(String name) {
 		this.name = name;
@@ -22,6 +26,7 @@ public class User {
 		return name;
 	}
 	
+	
 	@Override
 	public boolean equals(Object other) {
 		if (other == this)
@@ -30,7 +35,7 @@ public class User {
 			return false;
 		if (other instanceof User) {
 			User otherUser = (User) other;
-			return this.name.equals(otherUser.name);
+			return this.name.equals(otherUser.name) && this.chatWindows.equals(otherUser.chatWindows);
 		} else {
 			return false;
 		}

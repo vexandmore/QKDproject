@@ -8,7 +8,10 @@ import javafx.scene.control.*;
 import javafx.collections.*;
 import javafx.collections.ListChangeListener.Change;
 import javafx.event.*;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
@@ -19,6 +22,7 @@ import javafx.stage.Stage;
  */
 public class ControlUsersController {
 	private ObservableList<User> users = FXCollections.observableList(new ArrayList<>());
+	private HashMap<User, HashMap<User, Chat>> chatInstances = new HashMap<>();
 	private HashMap<User, HashMap<User, EncryptionParameters>> encryptionSettings = new HashMap<>();
 	private HashMap<User, EncryptionGuis> guiComponents = new HashMap<>();
 	@FXML private GridPane grid;
@@ -76,6 +80,8 @@ public class ControlUsersController {
 				//Change encryption settings
 				encryptionSettings.get(newUser).put(userCombo.getValue(), params);
 				encryptionSettings.get(userCombo.getValue()).put(newUser, params);
+				//Change chat windows
+				setEncryption(params, newUser, userCombo.getValue());
 				//Update GUI, in case the reflexive case is selected
 				if (newUser.equals(guiComponents.get(userCombo.getValue()).getSelected())) {
 					guiComponents.get(userCombo.getValue()).setState(params);
@@ -109,11 +115,46 @@ public class ControlUsersController {
 				return false;
 		return true;
 	}
-}
-
-enum EncryptionType {
-		QKD,
-		QKA
+	
+	private void setEncryption(EncryptionParameters params, User u1, User u2) {
+		Protocol[] protocols = params.makeProtocols();
+		if (chatInstances.containsKey(u1) && chatInstances.get(u1).containsKey(u2)) {
+			//modify existing chat windows
+			chatInstances.get(u1).get(u2).changeProtocol(protocols[0]);
+			chatInstances.get(u2).get(u1).changeProtocol(protocols[1]);
+		} else {
+			try {
+				//make comm channel and users
+				CommunicationChannel channel = new CommunicationChannel();
+				//Load guis and make Chat instances
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("ChatMockup.fxml"));
+				Parent root = loader.load();
+				ChatController controller1 = loader.getController();
+				Scene scene = new Scene(root);
+				Stage stage = new Stage();
+				stage.setTitle("Chat window 1: " + u1.getName());
+				stage.setScene(scene);
+				stage.show();
+				//load gui 2
+				FXMLLoader loader2 = new FXMLLoader(getClass().getResource("ChatMockup.fxml"));
+				Stage stage2 = new Stage();
+				Parent root2 = loader2.load();
+				ChatController controller2 = loader2.getController();
+				Scene scene2 = new Scene(root2);
+				stage2.setTitle("Chat window 2: " + u2.getName());
+				stage2.setScene(scene2);
+				stage2.show();
+				//connect it all up
+				Chat chat1 = new Chat(u1, u2, protocols[0], controller1, channel);
+				Chat chat2 = new Chat(u2, u1, protocols[1], controller2, channel);
+				channel.addListener(chat1);
+				channel.addListener(chat2);
+			} catch (Exception e) {
+				new Alert(Alert.AlertType.ERROR, "Error creating chat windows: " 
+						+ e.getMessage()).showAndWait();
+			}
+		}
+	}
 }
 
 /**
@@ -134,7 +175,7 @@ class EncryptionGuis {
 		this.thisUserLabel = new Label(thisUser.getName());
 		this.userSelector = cb;
 		typeSelector = new ComboBox();
-		typeSelector.setItems(FXCollections.observableArrayList(EncryptionType.QKD, EncryptionType.QKA));
+		typeSelector.setItems(FXCollections.observableArrayList(EncryptionParameters.EncryptionType.values()));
 		eavesdropperSelector = new CheckBox();
 		applyBtn = new Button("Apply");
 		securitySelector = new TextField();
@@ -173,7 +214,7 @@ class EncryptionGuis {
 			return Optional.empty();
 		}
 		return Optional.of(new EncryptionParameters(
-				(EncryptionType) (typeSelector.getSelectionModel().getSelectedItem()),
+				(EncryptionParameters.EncryptionType) (typeSelector.getSelectionModel().getSelectedItem()),
 				(boolean) eavesdropperSelector.selectedProperty().get(),
 				Double.parseDouble(securitySelector.getText())));
 	}
@@ -183,18 +224,3 @@ class EncryptionGuis {
 	}
 }
 
-/**
- * Encapsulates the current encryption parameters between two users.
- * @author Marc
- */
-class EncryptionParameters {	
-	public final EncryptionType type;
-	public final boolean eavesdropped;
-	public final double security;
-
-	public EncryptionParameters(EncryptionType type, boolean eavesdropped, double security) {
-		this.type = type;
-		this.eavesdropped = eavesdropped;
-		this.security = security;
-	}
-}
