@@ -87,8 +87,7 @@ public class QKDBob2 implements Protocol {
 			byte[] encrypted = a.encrypt(message, new byte[0]);
 			return encrypted;
 		} catch (GeneralSecurityException ex) {
-			System.out.println("error\n" + ex);
-			return null;
+			throw new EncryptionException(ex);
 		}
 	}
 	

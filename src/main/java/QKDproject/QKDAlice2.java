@@ -52,7 +52,9 @@ public class QKDAlice2 implements Protocol {
 		return securityLevel;
 	}
 	
-	protected void makeKey() throws KeyExchangeFailure {
+	protected synchronized void makeKey() throws KeyExchangeFailure {
+		if (key != null)
+			return;
 		try {
 			int bitsSent = (int) ((KEY_SIZE * 8 * 2.5) / (1 - (securityLevel / 100.0)));
 			alice_bases = "";
@@ -116,8 +118,7 @@ public class QKDAlice2 implements Protocol {
 			byte[] encrypted = a.encrypt(message, new byte[0]);
 			return encrypted;
 		} catch (GeneralSecurityException ex) {
-			System.out.println("error\n" + ex);
-			return null;
+			throw new EncryptionException(ex);
 		}
 	}
 	

@@ -9,11 +9,8 @@ import javafx.collections.*;
 import javafx.collections.ListChangeListener.Change;
 import javafx.event.*;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.*;
+import javafx.scene.input.*;
 import javafx.stage.Stage;
 
 /**
@@ -68,8 +65,9 @@ public class ControlUsersController {
 		//Create dropdown
 		ComboBox<User> userCombo = new ComboBox<>();
 		userCombo.setItems(otherUsers);
-		//Add HashMap in the encryptionSettings HashMap
+		//Add HashMaps in the encryptionSettings and chatInstances
 		encryptionSettings.put(newUser, new HashMap<>());
+		chatInstances.put(newUser, new HashMap<>());
 		//Create and place GUI components for changing the encryption settings
 		EncryptionGuis gui = new EncryptionGuis(newUser, userCombo);
 		guiComponents.put(newUser, gui);
@@ -149,6 +147,9 @@ public class ControlUsersController {
 				Chat chat2 = new Chat(u2, u1, protocols[1], controller2, channel);
 				channel.addListener(chat1);
 				channel.addListener(chat2);
+				
+				chatInstances.get(u1).put(u2, chat1);
+				chatInstances.get(u2).put(u1, chat2);
 			} catch (Exception e) {
 				new Alert(Alert.AlertType.ERROR, "Error creating chat windows: " 
 						+ e.getMessage()).showAndWait();
