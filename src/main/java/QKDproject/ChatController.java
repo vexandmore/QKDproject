@@ -9,6 +9,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.*;
+import javafx.scene.Node;
 import QKDproject.exception.*;
 import javafx.scene.input.*;
 
@@ -48,15 +49,9 @@ public class ChatController {
 	
 	@FXML
 	private void sendMessage() {
-		/*make and add chat bubble*/
 		ChatBubble newBubble = new ChatBubble(textfield.getText(), chatGrid.widthProperty(), Pos.CENTER_RIGHT);
-		chatGrid.getChildren().add(newBubble);
-		/*make and add progress indicator*/
 		ChatIndicator i = new ChatIndicator(ChatIndicator.Progress.STARTED);
-		chatGrid.getChildren().add(i);
-		//Scroll to bottom
-		scrollPane.layout();
-		scrollPane.vvalueProperty().set(scrollPane.getVmax());
+		addToThread(newBubble, i);
 		
 		//send message to other chatter asynchronously and scroll pane
 		String message = textfield.getText();
@@ -80,8 +75,6 @@ public class ChatController {
 				titleText = "Error exchanging key";
 			} else if (t instanceof EncryptionException) {
 				titleText = "Error encrypting message";
-			} else if (t instanceof DecryptionException) {
-				titleText = "Error decrypting message";
 			}
 			alert.setTitle(titleText);
 			alert.setHeaderText(titleText);
@@ -98,27 +91,37 @@ public class ChatController {
 	 */
 	protected void receiveMessage(String message) {
 		Platform.runLater(() -> {
-			if (message == null) {
-				showError(new IllegalArgumentException("Received null message"));
-			} else {
-				//make and add chat bubble
-				ChatBubble newBubble = new ChatBubble(message, chatGrid.widthProperty(), Pos.CENTER_LEFT);
-				int column = 0;
-				chatGrid.getChildren().add(newBubble);
-				//scroll to bottom
-				scrollPane.layout();
-				scrollPane.vvalueProperty().set(scrollPane.getVmax());
-			}
+			//make and add chat bubble
+			ChatBubble newBubble = new ChatBubble(message, chatGrid.widthProperty(), Pos.CENTER_LEFT);
+			addToThread(newBubble);
 		});
 	}
 	
 	/**
 	 * Intended to be called when the Chat managing the receiving of messages
-	 * encounters an exception.
+	 * encounters an exception. Can be called from any thread.
 	 * @param t Throwable that caused the error.
 	 */
 	protected void errorReceivingMessage(Throwable t) {
-		showError(t);
+		if (t instanceof DecryptionException) {
+			ChatBubble newBubble = new ChatBubble("[could not decrypt]", chatGrid.widthProperty(), Pos.CENTER_LEFT, Color.GREY);
+			Platform.runLater(() -> {
+				addToThread(newBubble);
+			});
+		} else {
+			showError(t);
+		}
+	}
+	
+	/**
+	 * Add nodes to the chat window and scrolls to bottom. Must be called from 
+	 * the GUI thread.
+	 * @param elements Nodes to add to chat thread
+	 */
+	private void addToThread(Node... elements) {
+		chatGrid.getChildren().addAll(elements);
+		scrollPane.layout();
+		scrollPane.vvalueProperty().set(scrollPane.getVmax());//scroll
 	}
 }
 
@@ -130,10 +133,14 @@ class ChatBubble extends StackPane {
 	private Rectangle bubble;
 	private Text text;
 	private ReadOnlyDoubleProperty parentWidth;
+	
 	public ChatBubble(String text, ReadOnlyDoubleProperty width, Pos alignment) {
+		this(text, width, alignment, Color.web("#548C54"));
+	}
+	public ChatBubble(String text, ReadOnlyDoubleProperty width, Pos alignment, Color bubbleColor) {
 		//Make bubble, bind width to chat window
 		bubble = new Rectangle();
-		bubble.setFill(Color.web("#548C54"));
+		bubble.setFill(bubbleColor);
 		bubble.setStroke(Color.BLACK);
 		bubble.widthProperty().bind(width.divide(2));
 		bubble.arcHeightProperty().set(15);
