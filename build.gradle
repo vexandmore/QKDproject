@@ -21,6 +21,10 @@ javafx {
     version = "14"
     modules = [  'javafx.controls', 'javafx.fxml', 'javafx.media' ]
 }
+
+compileJava {
+	//options.compilerArgs << "-Xlint:unchecked"
+}
 //mainClassName = 'MyPkg.CH_31.JavaFX_FXML.MainApp'
 //mainClassName = 'MyPkg.CH_14.AExecuter.Main'
 //mainClassName = 'MyPkg.CH_15.EventsAndAnimations._15_Q5_ScalingFigure'

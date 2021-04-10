@@ -62,27 +62,25 @@ public class ControlUsersController {
 		});
 
 		numUsers++;
-		//Create dropdown
-		ComboBox<User> userCombo = new ComboBox<>();
-		userCombo.setItems(otherUsers);
 		//Add HashMaps in the encryptionSettings and chatInstances
 		encryptionSettings.put(newUser, new HashMap<>());
 		chatInstances.put(newUser, new HashMap<>());
 		//Create and place GUI components for changing the encryption settings
-		EncryptionGuis gui = new EncryptionGuis(newUser, userCombo);
+		EncryptionGuis gui = new EncryptionGuis(newUser, otherUsers);
 		guiComponents.put(newUser, gui);
 		grid.addRow(numUsers, gui.nodesArr);
 		//Make Apply button actually change the encryption settings
 		gui.setOnApply(eh -> {
 			gui.getState().ifPresentOrElse(params -> {
+				User selectedUser = gui.getSelected();
 				//Change encryption settings
-				encryptionSettings.get(newUser).put(userCombo.getValue(), params);
-				encryptionSettings.get(userCombo.getValue()).put(newUser, params);
-				//Change chat windows
-				setEncryption(params, newUser, userCombo.getValue());
+				encryptionSettings.get(newUser).put(selectedUser, params);
+				encryptionSettings.get(selectedUser).put(newUser, params);
+				//Change/make chat windows
+				setEncryption(params, newUser, selectedUser);
 				//Update GUI, in case the reflexive case is selected
-				if (newUser.equals(guiComponents.get(userCombo.getValue()).getSelected())) {
-					guiComponents.get(userCombo.getValue()).setState(params);
+				if (newUser.equals(guiComponents.get(selectedUser).getSelected())) {
+					guiComponents.get(selectedUser).setState(params);
 				}
 			}, () -> {
 				new Alert(Alert.AlertType.ERROR,
@@ -91,8 +89,8 @@ public class ControlUsersController {
 		});
 
 		//Set the action for the user dropdown
-		userCombo.setOnAction((ActionEvent ae) -> {
-			User selected = userCombo.getSelectionModel().getSelectedItem();
+		gui.setOnUserSelect((ActionEvent ae) -> {
+			User selected = gui.getSelected();
 			//Set gui components to default state or the current encryption 
 			//settings between newUser and selected
 			if (encryptionSettings.get(newUser).containsKey(selected)) {
@@ -115,13 +113,13 @@ public class ControlUsersController {
 	}
 	
 	private void setEncryption(EncryptionParameters params, User u1, User u2) {
-		Protocol[] protocols = params.makeProtocols();
-		if (chatInstances.containsKey(u1) && chatInstances.get(u1).containsKey(u2)) {
-			//modify existing chat windows
-			chatInstances.get(u1).get(u2).changeProtocol(protocols[0]);
-			chatInstances.get(u2).get(u1).changeProtocol(protocols[1]);
-		} else {
-			try {
+		try {
+			Protocol[] protocols = params.makeProtocols();
+			if (chatInstances.containsKey(u1) && chatInstances.get(u1).containsKey(u2)) {
+				//modify existing chat windows
+				chatInstances.get(u1).get(u2).changeProtocol(protocols[0]);
+				chatInstances.get(u2).get(u1).changeProtocol(protocols[1]);
+			} else {
 				//make comm channel and users
 				CommunicationChannel channel = new CommunicationChannel();
 				//Load guis and make Chat instances
@@ -147,13 +145,13 @@ public class ControlUsersController {
 				Chat chat2 = new Chat(u2, u1, protocols[1], controller2, channel);
 				channel.addListener(chat1);
 				channel.addListener(chat2);
-				
+
 				chatInstances.get(u1).put(u2, chat1);
 				chatInstances.get(u2).put(u1, chat2);
-			} catch (Exception e) {
-				new Alert(Alert.AlertType.ERROR, "Error creating chat windows: " 
-						+ e.getMessage()).showAndWait();
 			}
+		} catch (Exception e) {
+			new Alert(Alert.AlertType.ERROR, "Error creating chat windows: "
+					+ e.getMessage()).showAndWait();
 		}
 	}
 }
@@ -164,7 +162,6 @@ public class ControlUsersController {
  * @author Marc
  */
 class EncryptionGuis {
-	private final Label thisUserLabel;
 	private final ComboBox userSelector, typeSelector;
 	private final CheckBox eavesdropperSelector;
 	private final TextField securitySelector;
@@ -172,9 +169,10 @@ class EncryptionGuis {
 	public final Node[] nodesArr;
 	private final static Pattern numberPattern = Pattern.compile("\\d+\\.\\d+|\\d+");
 	
-	public EncryptionGuis(User thisUser, ComboBox cb) {
-		this.thisUserLabel = new Label(thisUser.getName());
-		this.userSelector = cb;
+	public EncryptionGuis(User thisUser, ObservableList<User> otherUsers) {
+		Label thisUserLabel = new Label(thisUser.getName());
+		this.userSelector = new ComboBox();
+		this.userSelector.setItems(otherUsers);
 		typeSelector = new ComboBox();
 		typeSelector.setItems(FXCollections.observableArrayList(EncryptionParameters.EncryptionType.values()));
 		eavesdropperSelector = new CheckBox();
@@ -186,6 +184,10 @@ class EncryptionGuis {
 	
 	public void setOnApply(EventHandler<ActionEvent> eh) {
 		applyBtn.setOnAction(eh);
+	}
+	
+	public void setOnUserSelect(EventHandler<ActionEvent> eh) {
+		userSelector.setOnAction(eh);
 	}
 	
 	public void reset() {
