@@ -1,7 +1,9 @@
 package QKDproject;
 
+import QKDproject.exception.*;
 import javafx.application.Platform;
 import javafx.beans.property.*;
+import javafx.beans.value.*;
 import javafx.fxml.FXML;
 import javafx.geometry.*;
 import javafx.scene.control.*;
@@ -10,7 +12,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.*;
 import javafx.scene.Node;
-import QKDproject.exception.*;
 import javafx.scene.input.*;
 
 
@@ -23,6 +24,7 @@ public class ChatController {
 	@FXML public ScrollPane scrollPane;
 	@FXML public TextField textfield;
 	@FXML public BorderPane pane;
+	@FXML public Button sendButton;
 	private Chat chat;
 	
 	public ChatController() {
@@ -39,11 +41,12 @@ public class ChatController {
 	
 	@FXML
 	private void initialize() {
+		sendButton.disableProperty().bind(textfield.textProperty().isEmpty());
 	}
 	
 	@FXML
 	private void handleTextFieldKeypress(KeyEvent event) {
-		if (event.getCode().equals(KeyCode.ENTER))
+		if (event.getCode().equals(KeyCode.ENTER) && !(textfield.getText().equals("")))
 			sendMessage();
 	}
 	
@@ -132,32 +135,38 @@ public class ChatController {
 class ChatBubble extends StackPane {
 	private Rectangle bubble;
 	private Text text;
-	private ReadOnlyDoubleProperty parentWidth;
 	
 	public ChatBubble(String text, ReadOnlyDoubleProperty width, Pos alignment) {
 		this(text, width, alignment, Color.web("#548C54"));
 	}
+	
 	public ChatBubble(String text, ReadOnlyDoubleProperty width, Pos alignment, Color bubbleColor) {
-		//Make bubble, bind width to chat window
+		//Make bubble
 		bubble = new Rectangle();
 		bubble.setFill(bubbleColor);
 		bubble.setStroke(Color.BLACK);
-		bubble.widthProperty().bind(width.divide(2));
-		bubble.arcHeightProperty().set(15);
-		bubble.arcWidthProperty().set(15);
-		//add text and bind its width
+		bubble.setArcHeight(15);
+		bubble.setArcWidth(15);
+		//add text and get its total width
 		this.text = new Text(text);
-		this.text.wrappingWidthProperty().bind(bubble.widthProperty().subtract(10));
+		double textWidth = this.text.prefWidth(-1);
+		
+		//This listener changes the chat bubble's dimensions whenever the width changes
+		ChangeListener<Number> n = (ObservableValue<? extends Number> o, Number old, Number newValue) -> {
+			double maxWidth = newValue.doubleValue() * 0.75;
+			if (textWidth < maxWidth) {
+				this.text.setWrappingWidth(textWidth);
+				bubble.setWidth(textWidth + 10);
+			} else {
+				this.text.setWrappingWidth(maxWidth);
+				bubble.setWidth(maxWidth + 10);
+			}
+			bubble.setHeight(this.text.boundsInLocalProperty().get().getHeight() + 10);
+		};
+		n.changed(width, width.getValue(), width.getValue());
+		width.addListener(n);
+		//Set margin and alignments
 		StackPane.setMargin(this.text, new Insets(0, 5, 0, 5));
-		
-		
-		//Make the rectangle scale in height with text
-		this.text.boundsInLocalProperty().addListener(cl -> {
-			var b = (ReadOnlyObjectProperty<Bounds>)cl;
-			bubble.heightProperty().set(b.get().getHeight() + 10);
-		});
-		bubble.heightProperty().set(this.text.boundsInLocalProperty().getValue().getHeight() + 10);
-		
 		this.setAlignment(alignment);
 		this.getChildren().addAll(bubble, this.text);
 		this.setPadding(new Insets(5,5,5,5));

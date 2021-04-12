@@ -1,5 +1,6 @@
 package QKDproject;
 import javafx.scene.*;
+import javafx.scene.control.Button;
 
 /**
  * Window made for each user, allows them to see their many chats.
@@ -15,7 +16,12 @@ public abstract class UserWindowController {
 		return null;
 	}
 	
-	public abstract void addChat(Parent chatWindow, Chat c);
+	public abstract void addChat(Parent chatWindow, Button backButton, Chat c);
 	
+	public abstract User getUser();
+	
+	public static UserWindowController[] loadFromFile() {
+		return null;
+	}
 	
 }
