@@ -19,9 +19,4 @@ public abstract class UserWindowController {
 	public abstract void addChat(Parent chatWindow, Button backButton, Chat c);
 	
 	public abstract User getUser();
-	
-	public static UserWindowController[] loadFromFile() {
-		return null;
-	}
-	
 }

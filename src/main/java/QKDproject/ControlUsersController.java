@@ -4,6 +4,9 @@ import javafx.fxml.FXML;
 import javafx.scene.layout.*;
 import java.util.*;
 import java.util.regex.Pattern;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.control.*;
 import javafx.collections.*;
 import javafx.collections.ListChangeListener.Change;
@@ -143,6 +146,13 @@ public class ControlUsersController {
 				//connect it all up
 				Chat chat1 = new Chat(u1, u2, protocols[0], controller1, channel);
 				Chat chat2 = new Chat(u2, u1, protocols[1], controller2, channel);
+				//test code
+				/*ChangeListener<String> listener = (ObservableValue<? extends String> val, String oldval, String newval) -> {
+					System.out.println(newval);
+				};
+				chat1.latestMessageProperty().addListener(listener);*/
+				//test code
+				
 				channel.addListener(chat1);
 				channel.addListener(chat2);
 

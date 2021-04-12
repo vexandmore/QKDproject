@@ -2,6 +2,7 @@ package QKDproject;
 import java.io.*;
 import java.util.Objects;
 import QKDproject.exception.*;
+import javafx.beans.property.*;
 
 /**
  * Controls the flow of messages; sending and receiving, loading from and 
@@ -14,6 +15,7 @@ public class Chat implements MessageReader {
 	private Protocol protocol;
 	private ChatController chatView;
 	private CommunicationChannel channel;
+	private SimpleStringProperty latestMessage = new SimpleStringProperty();
 	
 	public Chat(User user1, User user2, Protocol protocol, ChatController controller, CommunicationChannel channel) {
 		this.user1 = user1;
@@ -45,6 +47,7 @@ public class Chat implements MessageReader {
 	 */
 	protected void sendMessage(String plaintext) throws EncryptionException, KeyExchangeFailure {
 		channel.sendMessage(protocol.encryptMessage(Protocol.stringToBytes(plaintext)), this);
+		latestMessage.set(user1.getName() + ": " + plaintext);
 	} 
 	
 	/**
@@ -57,6 +60,7 @@ public class Chat implements MessageReader {
 			byte[] decrypted = protocol.decryptMessage(message);
 			String plaintext = Protocol.bytesToString(decrypted);
 			chatView.receiveMessage(plaintext);
+			latestMessage.set(user2.getName() + ": " + plaintext);
 		} catch (Throwable t) {
 			chatView.errorReceivingMessage(t);
 		}
@@ -64,5 +68,9 @@ public class Chat implements MessageReader {
 	
 	public static void openChat(Chat chat, File chatHistory) {
 		
+	}
+
+	public ReadOnlyStringProperty latestMessageProperty() {
+		return latestMessage;
 	}
 }
