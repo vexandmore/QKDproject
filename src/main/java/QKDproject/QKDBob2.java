@@ -65,6 +65,7 @@ public class QKDBob2 implements Protocol {
 			if (alice.samplesMatch(bob_sample, sampleIndices)) {
 				//make the key here
 				String bob_key = removeAtIndices(sampleIndices, bob_matching_measured);
+				System.out.println("b: " + bob_key);
 				key = bitStringToArray(bob_key, QKDAlice.KEY_SIZE);
 				keyMade = true;
 			} else {

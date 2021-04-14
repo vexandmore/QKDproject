@@ -97,6 +97,7 @@ public class QKDAlice2 implements Protocol {
 		alice_sample = keepAtIndices(sampleIndices, alice_matching_measured);
 		if (alice_sample.equals(bobSample)) {
 			String aliceKey = removeAtIndices(sampleIndices, alice_matching_measured);
+			System.out.println("a: " + aliceKey);
 			this.key = bitStringToArray(aliceKey, KEY_SIZE);
 			return true;
 		} else {

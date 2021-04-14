@@ -17,6 +17,8 @@ public class QKDChannel {
 	private QKDBob2 bob;
 	private QKDAlice2 alice;
 	private String eve_bases = "", eve_results = "";
+	private String eve_key = "";
+	private List<Integer> matchingMeasured = null;
 	private static PyScript python;
 	private boolean eavesdropping;
 	/**
@@ -94,16 +96,22 @@ public class QKDChannel {
 		return alice.getSecurityLevel();
 	}
 	public List<Integer> measuredSameIndices(String bases) {
-		return alice.measuredSameIndices(bases);
+		if (eavesdropping) {
+			matchingMeasured = alice.measuredSameIndices(bases);
+			return matchingMeasured;
+		} else {
+			return alice.measuredSameIndices(bases);
+		}
 	}
-	public boolean samplesMatch(String sample, List<Integer> indices) {
-		return alice.samplesMatch(sample, indices);
+	public boolean samplesMatch(String sample, List<Integer> sampleIndices) {
+		if (eavesdropping) {
+			String eve_matching = QKDAlice.keepAtIndices(matchingMeasured, eve_results);
+			this.eve_key = QKDAlice.removeAtIndices(sampleIndices, eve_matching);
+			System.out.println("e: " + eve_key);
+		}
+		return alice.samplesMatch(sample, sampleIndices);
 	}
 	public void makeKey() throws KeyExchangeFailure {
 		alice.makeKey();
 	}
-	
-	//Methoda Alice calls
-	
-	
 }
