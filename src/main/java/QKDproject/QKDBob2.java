@@ -18,7 +18,7 @@ public class QKDBob2 implements Protocol {
 	private byte[] key;
 	private String bob_bases = "", bob_results = "";
 	private String bob_matching_measured = "";
-	protected QKDAlice2 alice;
+	protected QKDChannel alice;
 	private static PyScript python;
 	/**
 	 * The path of the python script. Determined at runtime.

@@ -45,6 +45,7 @@ public class QKDChannel {
 		this.alice = alice;
 		alice.channel = this;
 		this.bob = bob;
+		bob.alice = this;
 	}
 	
 	protected void passCircuitsToBob(String circuits) throws KeyExchangeFailure, IOException {
@@ -58,25 +59,26 @@ public class QKDChannel {
 	private void interceptCircuits(String circuits) throws IOException, KeyExchangeFailure {
 		boolean keyMade = false;
 		Random rand = new Random();
-		
-		for (int numAttempts = 0; numAttempts < 5 && !keyMade; numAttempts++) {
-			//make measurement bases
-			eve_bases = "";
-			int bitsSent = (int) ((QKDAlice2.KEY_SIZE * 8 * 2.5) / (1 - (alice.getSecurityLevel() / 100.0)));
-			for (int i = 0; i < bitsSent; i++) {
+		//make measurement bases
+		eve_bases = "";
+		int bitsSent = (int) ((QKDAlice2.KEY_SIZE * 8 * 2.5) / (1 - (alice.getSecurityLevel() / 100.0)));
+		for (int i = 0; i < bitsSent; i++) {
+			//if (i % 2 == 0) {
+			//	eve_bases += "2";
+			//} else {
 				eve_bases += rand.nextBoolean() ? '1' : '0';
-			}
-			//make measurements
-			String[] pythonOutput = getPython().getResults(eve_bases + " " + circuits).split(" ", 2);
-			eve_results = pythonOutput[0];
-			String new_circuits = pythonOutput[1];
-			if (eve_results.length() != eve_bases.length()) {
-				throw new KeyExchangeFailure("Error running python code,"
-						+ " result was unexpected length. Verify the anaconda setup.");
-			}
-			//Pass on new circuits to Bob
-			bob.passCircuits(new_circuits);
+			//}
 		}
+		//make measurements
+		String[] pythonOutput = getPython().getResults(eve_bases + " " + circuits).split(" ", 2);
+		eve_results = pythonOutput[0];
+		String new_circuits = pythonOutput[1];
+		if (eve_results.length() != eve_bases.length()) {
+			throw new KeyExchangeFailure("Error running python code,"
+					+ " result was unexpected length. Verify the anaconda setup.");
+		}
+		//Pass on new circuits to Bob
+		bob.passCircuits(new_circuits);
 	}
 	
 	private static PyScript getPython() throws IOException {
@@ -84,4 +86,24 @@ public class QKDChannel {
 			python = new PyScript(SCRIPT_LOCATION, "quantum");
 		return python;
 	}
+	
+	
+	
+	//Methods Bob calls
+	public int getSecurityLevel() {
+		return alice.getSecurityLevel();
+	}
+	public List<Integer> measuredSameIndices(String bases) {
+		return alice.measuredSameIndices(bases);
+	}
+	public boolean samplesMatch(String sample, List<Integer> indices) {
+		return alice.samplesMatch(sample, indices);
+	}
+	public void makeKey() throws KeyExchangeFailure {
+		alice.makeKey();
+	}
+	
+	//Methoda Alice calls
+	
+	
 }

@@ -16,7 +16,6 @@ import java.util.*;
  */
 public class QKDAlice2 implements Protocol {
 	private byte[] key;
-	protected QKDBob2 bob;
 	protected QKDChannel channel;
 	public final static int KEY_SIZE = 16;
 	private final int securityLevel;
@@ -41,11 +40,8 @@ public class QKDAlice2 implements Protocol {
 	 */
 	private static PyScript python;
 
-	public QKDAlice2(QKDBob2 other, QKDChannel channel, int securityLevel) {
-		this.bob = other;
-		this.bob.alice = this;
+	public QKDAlice2(int securityLevel) {
 		this.securityLevel = securityLevel;
-		this.channel = channel;
 	}
 	
 	protected int getSecurityLevel() {

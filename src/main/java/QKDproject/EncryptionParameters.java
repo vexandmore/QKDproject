@@ -25,7 +25,7 @@ public class EncryptionParameters {
 		if (this.type == EncryptionType.QKD) {
 			QKDChannel channel = new QKDChannel(eavesdropped);
 			QKDBob2 bob = new QKDBob2();
-			QKDAlice2 alice = new QKDAlice2(bob, channel, (int)security);
+			QKDAlice2 alice = new QKDAlice2((int)security);
 			channel.setup(alice, bob);
 			out[0] = alice;
 			out[1] = bob;
