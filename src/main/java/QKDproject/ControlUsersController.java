@@ -23,7 +23,7 @@ import javafx.stage.Stage;
 public class ControlUsersController {
 	private ObservableList<User> users = FXCollections.observableList(new ArrayList<>());
 	private HashMap<User, HashMap<User, Chat>> chatInstances = new HashMap<>();
-	private HashMap<User, HashMap<User, EncryptionParameters>> encryptionSettings = new HashMap<>();
+	private HashMap<Pair<User>, EncryptionParameters> encryptionSettings = new HashMap<>();
 	private HashMap<User, EncryptionGuis> guiComponents = new HashMap<>();
 	@FXML private GridPane grid;
 	@FXML private TextField usernameField;
@@ -65,8 +65,7 @@ public class ControlUsersController {
 		});
 
 		numUsers++;
-		//Add HashMaps in the encryptionSettings and chatInstances
-		encryptionSettings.put(newUser, new HashMap<>());
+		//Add HashMaps in chatInstances
 		chatInstances.put(newUser, new HashMap<>());
 		//Create and place GUI components for changing the encryption settings
 		EncryptionGuis gui = new EncryptionGuis(newUser, otherUsers);
@@ -77,8 +76,7 @@ public class ControlUsersController {
 			gui.getState().ifPresentOrElse(params -> {
 				User selectedUser = gui.getSelected();
 				//Change encryption settings
-				encryptionSettings.get(newUser).put(selectedUser, params);
-				encryptionSettings.get(selectedUser).put(newUser, params);
+				encryptionSettings.put(new Pair<>(newUser, selectedUser), params);
 				//Change/make chat windows
 				setEncryption(params, newUser, selectedUser);
 				//Update GUI, in case the reflexive case is selected
@@ -96,12 +94,11 @@ public class ControlUsersController {
 			User selected = gui.getSelected();
 			//Set gui components to default state or the current encryption 
 			//settings between newUser and selected
-			if (encryptionSettings.get(newUser).containsKey(selected)) {
-				guiComponents.get(newUser).setState(encryptionSettings.get(newUser).get(selected));
+			if (encryptionSettings.containsKey(new Pair<>(newUser, selected))) {
+				guiComponents.get(newUser).setState(encryptionSettings.get(new Pair<>(newUser, selected)));
 			} else {
 				guiComponents.get(newUser).reset();
 			}
-
 		});
 
 	}
@@ -110,7 +107,7 @@ public class ControlUsersController {
 		if (username.equals(""))
 			return false;
 		for (User u : users)
-			if (u.getName().trim().equals(username))
+			if (u.getName().equals(username))
 				return false;
 		return true;
 	}
@@ -234,6 +231,33 @@ class EncryptionGuis {
 	
 	public User getSelected() {
 		return (User) userSelector.getSelectionModel().getSelectedItem();
+	}
+}
+
+/**
+ * Represents an unordered pair. Cannot contain null elements.
+ */
+final class Pair<T> {
+	public final T u1, u2;
+	public Pair(T u1, T u2) {
+		this.u1 = Objects.requireNonNull(u1);
+		this.u2 = Objects.requireNonNull(u2);
+	}
+	@Override
+	public int hashCode() {
+		return u1.hashCode() + u2.hashCode();
+	}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof Pair))
+			return false;
+		final Pair other = (Pair) obj;
+		return (u1.equals(other.u1) && u2.equals(other.u2) ||
+				u1.equals(other.u2) && u2.equals(other.u1));
 	}
 }
 

@@ -46,7 +46,7 @@ public class ChatController {
 	
 	@FXML
 	private void handleTextFieldKeypress(KeyEvent event) {
-		if (event.getCode().equals(KeyCode.ENTER) && !(textfield.getText().equals("")))
+		if (event.getCode().equals(KeyCode.ENTER) && !(textfield.getText().isEmpty()))
 			sendMessage();
 	}
 	
