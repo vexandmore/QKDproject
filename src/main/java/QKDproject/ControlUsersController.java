@@ -157,8 +157,10 @@ public class ControlUsersController {
 				chatInstances.get(u2).put(u1, chat2);
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			new Alert(Alert.AlertType.ERROR, "Error creating chat windows: "
 					+ e.getMessage()).showAndWait();
+			e.printStackTrace();
 		}
 	}
 }

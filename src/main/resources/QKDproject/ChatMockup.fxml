@@ -39,7 +39,7 @@
                      <font>
                         <Font size="18.0" />
                      </font></Button>
-                  <Text fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="Conversation with Raphael">
+                  <Text fx:id="headerText" fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="Conversation with">
                      <font>
                         <Font size="18.0" />
                      </font></Text>

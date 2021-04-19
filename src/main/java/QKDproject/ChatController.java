@@ -25,6 +25,7 @@ public class ChatController {
 	@FXML public TextField textfield;
 	@FXML public BorderPane pane;
 	@FXML public Button sendButton;
+	@FXML public Text headerText;
 	private Chat chat;
 	
 	public ChatController() {
@@ -37,6 +38,7 @@ public class ChatController {
 	 */
 	protected void setChat(Chat c) {
 		this.chat = c;
+		headerText.setText("Conversation with " + c.getUser2());
 	}
 	
 	@FXML
