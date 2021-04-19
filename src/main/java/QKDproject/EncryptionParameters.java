@@ -40,21 +40,23 @@ public class EncryptionParameters {
 			return out;
 		} else {
 			QKA test = new QKA(eavesdropped, security);
+			//This is made as a one element array so whether or not the key is made
+			//is a state that will be shared between both QKA users.
+			boolean[] keyMade = new boolean[1];
 			
 			QKAuser alice = new QKAuser();
 			QKAuser bob = new QKAuser();
 			alice.connect(bob);
 			
 			Protocol a = new Protocol() {
-				boolean hasKey = false;
 				@Override
 				public byte[] encryptMessage(byte[] message) throws KeyExchangeFailure, EncryptionException {
-					if (hasKey) {
+					if (keyMade[0]) {
 						return alice.encryptMessage(message);
 					} else {
 						try {
 							test.makeKey(alice, bob);
-							hasKey = true;
+							keyMade[0] = true;
 							return alice.encryptMessage(message);
 						} catch (java.io.IOException e) {
 							throw new KeyExchangeFailure(e);
@@ -63,30 +65,19 @@ public class EncryptionParameters {
 				}
 				@Override
 				public byte[] decryptMessage(byte[] encryptedMessage) throws KeyExchangeFailure, DecryptionException {
-					if (hasKey) {
-						return alice.decryptMessage(encryptedMessage);
-					} else {
-						try {
-							test.makeKey(alice, bob);
-							hasKey = true;
-							return alice.decryptMessage(encryptedMessage);
-						} catch (java.io.IOException e) {
-							throw new KeyExchangeFailure(e);
-						}
-					}
+					return alice.decryptMessage(encryptedMessage);
 				}
 			};
 			
 			Protocol b = new Protocol() {
-				boolean hasKey = false;
 				@Override
 				public byte[] encryptMessage(byte[] message) throws KeyExchangeFailure, EncryptionException {
-					if (hasKey) {
+					if (keyMade[0]) {
 						return bob.encryptMessage(message);
 					} else {
 						try {
 							test.makeKey(alice, bob);
-							hasKey = true;
+							keyMade[0] = true;
 							return bob.encryptMessage(message);
 						} catch (java.io.IOException e) {
 							throw new KeyExchangeFailure(e);
@@ -95,17 +86,7 @@ public class EncryptionParameters {
 				}
 				@Override
 				public byte[] decryptMessage(byte[] encryptedMessage) throws KeyExchangeFailure, DecryptionException {
-					if (hasKey) {
-						return bob.decryptMessage(encryptedMessage);
-					} else {
-						try {
-							test.makeKey(alice, bob);
-							hasKey = true;
-							return bob.decryptMessage(encryptedMessage);
-						} catch (java.io.IOException e) {
-							throw new KeyExchangeFailure(e);
-						}
-					}
+					return bob.decryptMessage(encryptedMessage);
 				}
 			};
 			out[0] = a;
