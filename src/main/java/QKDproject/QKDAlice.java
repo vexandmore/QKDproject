@@ -1,10 +1,9 @@
 package QKDproject;
 
 import com.google.crypto.tink.subtle.AesGcmJce;
-import java.io.*;
 import java.security.GeneralSecurityException;
 import java.util.*;
-import QKDproject.exception.DecryptionException;
+import QKDproject.exception.*;
 
 /**
  * Protocol that performs quantum key distribution. It is assumed that each
@@ -30,7 +29,6 @@ public class QKDAlice implements Protocol {
 	private String alice_bits = "";
 	private String alice_bases = "", eve_bases = "";
 	private String alice_sample = "", alice_matching_measured = "";
-	private List<Integer> sampleIndices;
 	
 	/**
 	 * Constructs a QKD with the parameters. Does not immediately determine a
@@ -56,7 +54,7 @@ public class QKDAlice implements Protocol {
 	}
 	
 	@Override
-	public byte[] encryptMessage(byte[] message) {
+	public byte[] encryptMessage(byte[] message) throws KeyExchangeFailure, EncryptionException {
 		if (key == null) {
 			other.makeKey();
 		}
@@ -71,7 +69,7 @@ public class QKDAlice implements Protocol {
 	}
 	
 	@Override
-	public byte[] decryptMessage(byte[] encryptedMessage) throws DecryptionException {
+	public byte[] decryptMessage(byte[] encryptedMessage) throws KeyExchangeFailure, DecryptionException {
 		if (key == null) {
 			other.makeKey();
 		}
