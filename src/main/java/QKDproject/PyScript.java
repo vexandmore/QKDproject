@@ -4,7 +4,7 @@ import java.io.*;
 
 /**
  * Class that encapsulates a running python script
- * @author Marc
+ * @authors Marc and Raphael
  */
 public class PyScript {
 	private BufferedReader pyIn;
@@ -43,12 +43,74 @@ public class PyScript {
 	 * @return Resulting output line.
 	 * @throws IOException 
 	 */
+        
+        //QKD
 	public synchronized String getResults(String input) throws IOException {
 		pyOut.println(input);
 		pyOut.flush();
-		String out = pyIn.readLine();
-		//System.out.println("\ninput line follows:\n\n\n" + input + "\n");
-		//System.out.println("\noutput line follows:\n\n\n" + out + "\n");
-		return out;
+                return pyIn.readLine();
 	}
+        
+        //QKA
+        //GiveData ,returns data necessary to find key
+        public synchronized String[] getResults(double securityProperty) throws IOException {
+                pyOut.println(securityProperty);
+                pyOut.flush();
+                String[] ls = new String[12];
+                for (int i = 0; i < ls.length; i++) {
+                    ls[i] = pyIn.readLine();
+                    //System.out.println(ls[i]+" ");
+                }
+                return ls;
+        }
+
+        //ReceiveData1, outputs decoy bits, and lists without decoys
+        public synchronized String[] getResults(String strS__, String strC_, String pos_dS, String pos_dC, String ba_dS, String ba_dC) throws IOException {
+            String temp = strS__ + "#" + strC_ + "#" + pos_dS + "#" + pos_dC + "#" + ba_dS + "#" + ba_dC;
+            pyOut.println(temp);
+            pyOut.flush();
+            String[] ls = new String[4];
+            for (int i = 0; i < ls.length; i++) {
+                    ls[i] = pyIn.readLine();
+            }
+            return ls;
+        }
+        //securityCheck,
+        public synchronized String[] getResults(String dS, String dC, String bi_dS, String bi_dC) throws IOException {
+            String temp = dS + "#" + dC + "#" + bi_dS + "#" + bi_dC;
+            pyOut.println(temp);
+            pyOut.flush();
+            String[] ls = new String[2];
+            ls[0] = pyIn.readLine();
+            ls[1] = pyIn.readLine();
+            return ls;
+        }
+        
+        //makeKey, outputs shared key
+        public synchronized String getResults(String Kkey, String S_, String C, String seed, String bS, String bH, String placeholder) throws IOException {
+            String temp = Kkey + "#" + S_ + "#" + C + "#" + seed + "#" + bS + "#" + bH + "#" + "placeholder";
+            pyOut.println(temp);
+            pyOut.flush();
+            return pyIn.readLine();
+        }
+        
+        
+        //intercept
+        //intercept 2 strings, each is an array of strings with each element (string) seperated by "@"
+        public synchronized String[] getResults(String strS__, String strC_) throws IOException {
+            // each argument is seperated by "#", element by @
+            String temp = strS__ + "#" + strC_;
+            
+            pyOut.println(temp);
+            pyOut.flush();
+            String[] ls = new String[2];
+            ls[0] = pyIn.readLine();
+            ls[1] = pyIn.readLine();
+
+            return ls;
+        }
+        
+        
+        
+                
 }
