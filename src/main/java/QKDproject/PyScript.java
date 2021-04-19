@@ -9,6 +9,7 @@ import java.io.*;
 public class PyScript {
 	private BufferedReader pyIn;
 	private PrintWriter pyOut;
+	private PrintWriter debugger;
 	/**
 	 * Runs a python script with the given args in the given anaconda env.
 	 * Relies on cmd.exe having been initialized with conda (ie conda initialize
@@ -31,6 +32,8 @@ public class PyScript {
 		Process p = pb.start();
 		pyIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
 		pyOut = new PrintWriter(new BufferedOutputStream(p.getOutputStream()));
+		
+		debugger = new PrintWriter(new FileOutputStream(new File("test.txt"), true));
 	}
 	
 	/**
