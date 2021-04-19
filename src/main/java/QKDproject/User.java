@@ -1,17 +1,11 @@
 package QKDproject;
 
-import java.util.*;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.*;
-import javafx.stage.*;
-
 /**
- * Represents a user.
+ * Represents a user, a person chatting.
  * @author Marc
  */
 public class User {
 	private String name;
-	private List<Chat> chatWindows = new ArrayList<>();
 	
 	public User(String name) {
 		this.name = name;
@@ -35,7 +29,7 @@ public class User {
 			return false;
 		if (other instanceof User) {
 			User otherUser = (User) other;
-			return this.name.equals(otherUser.name) && this.chatWindows.equals(otherUser.chatWindows);
+			return this.name.equals(otherUser.name);
 		} else {
 			return false;
 		}

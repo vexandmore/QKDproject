@@ -5,12 +5,11 @@ import QKDproject.exception.*;
 import javafx.beans.property.*;
 
 /**
- * Controls the flow of messages; sending and receiving, loading from and 
- * saving to a file.
+ * Controls the flow of messages; sending and receiving. Connects to a
+ * CommunicationChannel and one ChatController.
  * @author Marc
  */
 public class Chat implements MessageReader {
-	private File chatHistory;
 	private User user1, user2;
 	private Protocol protocol;
 	private ChatController chatView;
@@ -20,12 +19,15 @@ public class Chat implements MessageReader {
 	public Chat(User user1, User user2, Protocol protocol, ChatController controller, CommunicationChannel channel) {
 		this.user1 = user1;
 		this.user2 = user2;
-		this.protocol = Objects.requireNonNull(protocol, "Protocol passed must be non null");
-		this.chatView = Objects.requireNonNull(controller, "ChatController must be non null");
+		this.protocol = Objects.requireNonNull(protocol);
+		this.chatView = Objects.requireNonNull(controller);
 		this.channel = channel;
 		this.chatView.setChat(this);
 	}
 	
+	/**
+	 * Get the main user represented by this Chat.
+	 */
 	public User getUser1() {
 		return user1;
 	}
@@ -66,10 +68,10 @@ public class Chat implements MessageReader {
 		}
 	}
 	
-	public static void openChat(Chat chat, File chatHistory) {
-		
-	}
-
+	/**
+	 * Returns a property representing the latest message sent between the
+	 * chatters. The String is the username, a colon, followed by the message.
+	 */
 	public ReadOnlyStringProperty latestMessageProperty() {
 		return latestMessage;
 	}

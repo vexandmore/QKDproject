@@ -20,6 +20,10 @@ public class EncryptionParameters {
 		this.security = security;
 	}
 	
+	/**
+	 * Make a pair of protocols that have the properties of this object.
+	 * @return Array containing 2 protocols.
+	 */
 	public Protocol[] makeProtocols() {
 		Protocol[] out = new Protocol[2];
 		if (this.type == EncryptionType.QKD) {

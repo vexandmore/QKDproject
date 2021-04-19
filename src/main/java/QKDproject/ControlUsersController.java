@@ -164,39 +164,57 @@ public class ControlUsersController {
 }
 
 /**
- * Encapsulates the set of GUI components used to parameterize security.
+ * Encapsulates the set of GUI components used to configure security.
  * Intended for there to be one instance of these per User.
  * @author Marc
  */
 class EncryptionGuis {
-	private final ComboBox userSelector, typeSelector;
+	private final ComboBox<User> userSelector;
+	private final ComboBox<EncryptionParameters.EncryptionType> typeSelector;
 	private final CheckBox eavesdropperSelector;
 	private final TextField securitySelector;
 	private final Button applyBtn;
 	public final Node[] nodesArr;
 	private final static Pattern numberPattern = Pattern.compile("\\d+\\.\\d+|\\d+");
+	private final static ObservableList<EncryptionParameters.EncryptionType> encryptionTypes = 
+			FXCollections.observableArrayList(EncryptionParameters.EncryptionType.values());
 	
+	/**
+	 * Creates an EncryptionGuis with the given user and list of other users.
+	 * @param thisUser Primary user for this gui.
+	 * @param otherUsers Observable list of other users thisUser could talk to.
+	 */
 	public EncryptionGuis(User thisUser, ObservableList<User> otherUsers) {
 		Label thisUserLabel = new Label(thisUser.getName());
-		this.userSelector = new ComboBox();
-		this.userSelector.setItems(otherUsers);
-		typeSelector = new ComboBox();
-		typeSelector.setItems(FXCollections.observableArrayList(EncryptionParameters.EncryptionType.values()));
+		userSelector = new ComboBox<>();
+		userSelector.setItems(otherUsers);
+		typeSelector = new ComboBox<>();
+		typeSelector.setItems(encryptionTypes);
 		eavesdropperSelector = new CheckBox();
 		applyBtn = new Button("Apply");
 		securitySelector = new TextField();
-		nodesArr = new Node[] {thisUserLabel, userSelector, typeSelector, 
-			securitySelector, eavesdropperSelector, applyBtn};
+		nodesArr = new Node[] {thisUserLabel, userSelector, typeSelector, securitySelector, eavesdropperSelector, applyBtn};
 	}
 	
+	/**
+	 * Set the action that occurs when the apply button is presed.
+	 * @param eh Event handler for the apply button.
+	 */
 	public void setOnApply(EventHandler<ActionEvent> eh) {
 		applyBtn.setOnAction(eh);
 	}
 	
+	/**
+	 * Set the action that occurs when another user to communicate with is selected.
+	 * @param eh Event handler.
+	 */
 	public void setOnUserSelect(EventHandler<ActionEvent> eh) {
 		userSelector.setOnAction(eh);
 	}
 	
+	/**
+	 * Resets this to an empty state.
+	 */
 	public void reset() {
 		typeSelector.getSelectionModel().clearSelection();
 		eavesdropperSelector.selectedProperty().set(false);
@@ -224,13 +242,13 @@ class EncryptionGuis {
 			return Optional.empty();
 		}
 		return Optional.of(new EncryptionParameters(
-				(EncryptionParameters.EncryptionType) (typeSelector.getSelectionModel().getSelectedItem()),
-				(boolean) eavesdropperSelector.selectedProperty().get(),
+				typeSelector.getSelectionModel().getSelectedItem(),
+				eavesdropperSelector.selectedProperty().get(),
 				Double.parseDouble(securitySelector.getText())));
 	}
 	
 	public User getSelected() {
-		return (User) userSelector.getSelectionModel().getSelectedItem();
+		return userSelector.getSelectionModel().getSelectedItem();
 	}
 }
 
