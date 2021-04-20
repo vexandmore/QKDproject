@@ -26,6 +26,7 @@ public class ChatController {
 	@FXML public BorderPane pane;
 	@FXML public Button sendButton;
 	@FXML public Text headerText;
+	@FXML public Button backButton;
 	private Chat chat;
 	
 	public ChatController() {

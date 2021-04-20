@@ -35,7 +35,7 @@
          <top>
             <HBox prefHeight="71.0" prefWidth="600.0" style="-fx-background-color: #228B22;" BorderPane.alignment="CENTER">
                <children>
-                  <Button mnemonicParsing="false" prefHeight="10.0" prefWidth="45.0" style="-fx-background-color: #228B22;" text="⬅" textFill="WHITE">
+                  <Button fx:id="backButton" mnemonicParsing="false" prefHeight="10.0" prefWidth="45.0" style="-fx-background-color: #228B22;" text="⬅" textFill="WHITE">
                      <font>
                         <Font size="18.0" />
                      </font></Button>
