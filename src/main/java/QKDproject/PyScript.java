@@ -62,6 +62,11 @@ public class PyScript {
 		
 	}
 	
+	/**
+	 * Detect if the installed python has qiskit or if python is set up in
+	 * an anaconda environment.
+	 * @throws IOException 
+	 */
 	private static synchronized void detectEnvironment() throws IOException {
 		if (env != null)
 			return;
