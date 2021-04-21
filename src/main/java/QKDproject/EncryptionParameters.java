@@ -6,7 +6,7 @@ import QKDproject.exception.KeyExchangeFailure;
 
 /**
  * Encapsulates the current encryption parameters between two users.
- * @author Marc
+ * @author Marc and Raphael
  */
 public class EncryptionParameters {
 	public enum EncryptionType {
@@ -42,7 +42,6 @@ public class EncryptionParameters {
 			QKA test = new QKA(eavesdropped, security);
 			//This is made as a one element array so whether or not the key is made
 			//is a state that will be shared between both QKA users.
-			boolean[] keyMade = new boolean[1];
 			
 			QKAuser alice = new QKAuser();
 			QKAuser bob = new QKAuser();
@@ -51,12 +50,11 @@ public class EncryptionParameters {
 			Protocol a = new Protocol() {
 				@Override
 				public byte[] encryptMessage(byte[] message) throws KeyExchangeFailure, EncryptionException {
-					if (keyMade[0]) {
+					if (alice.keyMade()) {
 						return alice.encryptMessage(message);
 					} else {
 						try {
 							test.makeKey(alice, bob);
-							keyMade[0] = true;
 							return alice.encryptMessage(message);
 						} catch (java.io.IOException e) {
 							throw new KeyExchangeFailure(e);
@@ -72,12 +70,11 @@ public class EncryptionParameters {
 			Protocol b = new Protocol() {
 				@Override
 				public byte[] encryptMessage(byte[] message) throws KeyExchangeFailure, EncryptionException {
-					if (keyMade[0]) {
+					if (bob.keyMade()) {
 						return bob.encryptMessage(message);
 					} else {
 						try {
 							test.makeKey(alice, bob);
-							keyMade[0] = true;
 							return bob.encryptMessage(message);
 						} catch (java.io.IOException e) {
 							throw new KeyExchangeFailure(e);
