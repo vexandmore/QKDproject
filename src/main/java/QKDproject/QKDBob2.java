@@ -108,7 +108,7 @@ public class QKDBob2 implements Protocol {
 	
 	private static PyScript getPython() throws IOException {
 		if (python == null)
-			python = new PyScript(SCRIPT_LOCATION, "quantum");
+			python = new PyScript(SCRIPT_LOCATION, "QiskitEngine");
 		return python;
 	}
 }
