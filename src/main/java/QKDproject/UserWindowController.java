@@ -8,12 +8,13 @@ import javafx.scene.control.Button;
  */
 public abstract class UserWindowController {
 	/**
-	 * Static factory. Loads javafx window and returns the controller.
+	 * Static factory. Loads javafx window and returns the controller. Currently
+	 * loads a SimpleUserWindow.
 	 * @param u User to make controller for.
 	 * @return 
 	 */
 	public static UserWindowController create(User u) {
-		return null;
+		return new QKDproject.test.SimpleUserWindow(u);
 	}
 	
 	public abstract void addChat(Parent chatWindow, Button backButton, Chat c);
