@@ -69,7 +69,9 @@ public class ControlUsersController {
 		numUsers++;
 		//Add HashMap in chatInstances and create user window
 		chatInstances.put(newUser, new HashMap<>());
+		
 		userWindows.put(newUser, UserWindowController.create(newUser));
+		
 		//Create and place GUI components for changing the encryption settings
 		EncryptionGuis gui = new EncryptionGuis(newUser, otherUsers);
 		guiComponents.put(newUser, gui);

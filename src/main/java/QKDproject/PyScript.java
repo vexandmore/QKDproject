@@ -3,37 +3,87 @@ package QKDproject;
 import java.io.*;
 
 /**
- * Class that encapsulates a running python script
+ * Class that encapsulates a running python script.
  * @authors Marc and Raphael
  */
 public class PyScript {
 	private BufferedReader pyIn;
 	private PrintWriter pyOut;
 	private PrintWriter debugger;
+	private static Environment env = null;
+	
+	private enum Environment {
+		Windows_Conda,
+		Windows_Builtin
+	};
+	
 	/**
 	 * Runs a python script with the given args in the given anaconda env.
-	 * Relies on cmd.exe having been initialized with conda (ie conda initialize
-	 * cmd.exe has been run). As such, only works on windows.
+	 * Should be able to detect whether the builtin python has qiskit installed
+	 * or not and work accordingly.
+	 * Windows only for now. For Anaconda: relies on cmd.exe having been 
+	 * initialized with conda (ie conda initialize cmd.exe has been run).
 	 * @param scriptLocation Path to the python script
-	 * @param condaEnvName Name of conda environment to run in.
+	 * @param condaEnvName Name of conda environment to run in, if necessary.
 	 * @param args Arguments to give to python script
 	 * @throws IOException 
 	 */
 	public PyScript(String scriptLocation, 
 			String condaEnvName, String... args) throws IOException {
-		String[] initialArgs = {"cmd.exe", "/c", "conda", "activate", condaEnvName, 
-			"&&", "python", scriptLocation};
-		String[] pbArgs = new String[initialArgs.length + args.length];
-		System.arraycopy(initialArgs, 0, pbArgs, 0, initialArgs.length);
-		System.arraycopy(args, 0, pbArgs, initialArgs.length, args.length);
+		if (env == null)
+			detectEnvironment();
+		if (env == Environment.Windows_Conda) {
+			String[] initialArgs = {"cmd.exe", "/c", "conda", "activate", condaEnvName,
+				"&&", "python", scriptLocation};
+			String[] pbArgs = new String[initialArgs.length + args.length];
+			System.arraycopy(initialArgs, 0, pbArgs, 0, initialArgs.length);
+			System.arraycopy(args, 0, pbArgs, initialArgs.length, args.length);
+
+			ProcessBuilder pb = new ProcessBuilder(pbArgs);
+			pb.redirectErrorStream(true);
+			Process p = pb.start();
+			pyIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			pyOut = new PrintWriter(new BufferedOutputStream(p.getOutputStream()));
+
+			debugger = new PrintWriter(new FileOutputStream(new File("test.txt"), true));
+		} else {
+			String[] initialArgs = {"py", scriptLocation};
+			String[] pbArgs = new String[initialArgs.length + args.length];
+			System.arraycopy(initialArgs, 0, pbArgs, 0, initialArgs.length);
+			System.arraycopy(args, 0, pbArgs, initialArgs.length, args.length);
+			ProcessBuilder pb = new ProcessBuilder(pbArgs);
+			pb.redirectErrorStream(true);
+			Process p = pb.start();
+			pyIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			pyOut = new PrintWriter(new BufferedOutputStream(p.getOutputStream()));
+
+			debugger = new PrintWriter(new FileOutputStream(new File("test.txt"), true));
+		}
 		
-		ProcessBuilder pb = new ProcessBuilder(pbArgs);
-		pb.redirectErrorStream(true);
-		Process p = pb.start();
-		pyIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
-		pyOut = new PrintWriter(new BufferedOutputStream(p.getOutputStream()));
-		
-		debugger = new PrintWriter(new FileOutputStream(new File("test.txt"), true));
+	}
+	
+	private static synchronized void detectEnvironment() throws IOException {
+		if (env != null)
+			return;
+		String testScript = new File(".").getCanonicalPath() + 
+                                    File.separatorChar + "src" + File.separatorChar + "main" + 
+                                    File.separatorChar + "pythonTest.py";
+		//see if builtin Python in windows will work
+		try {
+			ProcessBuilder pb = new ProcessBuilder("py", testScript);
+			pb.redirectErrorStream(true);
+			Process p = pb.start();
+			BufferedReader tempIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			String l = tempIn.readLine();
+			//System.out.println("returned line: " + l);
+			if (l != null && l.equals("import successful")) {
+				env = Environment.Windows_Builtin;
+			} else {
+				env = Environment.Windows_Conda;
+			}
+		} catch (IOException e) {
+			env = Environment.Windows_Conda;
+		}
 	}
 	
 	/**
