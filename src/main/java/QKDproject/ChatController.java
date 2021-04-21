@@ -17,7 +17,7 @@ import javafx.scene.input.*;
 
 /**
  * Controller for the Chat window.
- * @author Marc
+ * @author Marc and Raphael
  */
 public class ChatController {
 	@FXML public VBox chatGrid;
@@ -26,6 +26,7 @@ public class ChatController {
 	@FXML public BorderPane pane;
 	@FXML public Button sendButton;
 	@FXML public Text headerText;
+	@FXML public Button backButton;
 	private Chat chat;
 	
 	public ChatController() {

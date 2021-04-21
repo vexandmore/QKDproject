@@ -11,7 +11,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="457.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="QKDproject.ChatController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="457.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="QKDproject.ChatController">
    <children>
       <BorderPane fx:id="pane" layoutX="150.0" layoutY="77.0" prefHeight="481.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <bottom>
@@ -35,7 +35,7 @@
          <top>
             <HBox prefHeight="71.0" prefWidth="600.0" style="-fx-background-color: #228B22;" BorderPane.alignment="CENTER">
                <children>
-                  <Button mnemonicParsing="false" prefHeight="10.0" prefWidth="45.0" style="-fx-background-color: #228B22;" text="⬅" textFill="WHITE">
+                  <Button fx:id="backButton" mnemonicParsing="false" prefHeight="10.0" prefWidth="45.0" style="-fx-background-color: #228B22;" text="⬅" textFill="WHITE">
                      <font>
                         <Font size="18.0" />
                      </font></Button>

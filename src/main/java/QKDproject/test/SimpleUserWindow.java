@@ -9,7 +9,7 @@ import javafx.stage.*;
 
 /**
  *
- * @author Marc
+ * @author Marc and Raphael
  */
 public class SimpleUserWindow extends UserWindowController {
 	private VBox vbox;
@@ -18,8 +18,8 @@ public class SimpleUserWindow extends UserWindowController {
 	private User u1;
 	
 	public SimpleUserWindow(User u) {
-		u1 = u;
-		vbox = new VBox();
+		this.u1 = u;
+		this.vbox = new VBox();
 		vbox.setPrefSize(300, 300);
 		vbox.getChildren().add(new Label("This is: " + u1.getName()));
 		
@@ -29,7 +29,12 @@ public class SimpleUserWindow extends UserWindowController {
 		mainStage.setScene(mainScene);
 		mainStage.show();
 	}
-
+        
+        public void openUserWindow() {
+                mainStage.show();
+        }
+        
+        
 	@Override
 	public void addChat(Parent chatWindow, Button backButton, Chat c) {
 		Button goToChat = new Button("chat with " + c.getUser2());
@@ -42,7 +47,7 @@ public class SimpleUserWindow extends UserWindowController {
 			mainStage.setScene(mainScene);
 		});
 	}
-
+        
 	@Override
 	public User getUser() {
 		return u1;
