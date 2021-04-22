@@ -9,7 +9,6 @@ import java.io.*;
 public class PyScript {
 	private BufferedReader pyIn;
 	private PrintWriter pyOut;
-	private PrintWriter debugger;
 	private static Environment env = null;
 	
 	private enum Environment {
@@ -40,24 +39,20 @@ public class PyScript {
 			System.arraycopy(args, 0, pbArgs, initialArgs.length, args.length);
 
 			ProcessBuilder pb = new ProcessBuilder(pbArgs);
-			pb.redirectErrorStream(true);
+			//pb.redirectErrorStream(true);
 			Process p = pb.start();
 			pyIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			pyOut = new PrintWriter(new BufferedOutputStream(p.getOutputStream()));
-
-			debugger = new PrintWriter(new FileOutputStream(new File("test.txt"), true));
 		} else {
 			String[] initialArgs = {"py", scriptLocation};
 			String[] pbArgs = new String[initialArgs.length + args.length];
 			System.arraycopy(initialArgs, 0, pbArgs, 0, initialArgs.length);
 			System.arraycopy(args, 0, pbArgs, initialArgs.length, args.length);
 			ProcessBuilder pb = new ProcessBuilder(pbArgs);
-			pb.redirectErrorStream(true);
+			//pb.redirectErrorStream(true);
 			Process p = pb.start();
 			pyIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			pyOut = new PrintWriter(new BufferedOutputStream(p.getOutputStream()));
-
-			debugger = new PrintWriter(new FileOutputStream(new File("test.txt"), true));
 		}
 		
 	}
@@ -80,7 +75,6 @@ public class PyScript {
 			Process p = pb.start();
 			BufferedReader tempIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String l = tempIn.readLine();
-			//System.out.println("returned line: " + l);
 			if (l != null && l.equals("import successful")) {
 				env = Environment.Windows_Builtin;
 			} else {
@@ -164,8 +158,4 @@ public class PyScript {
 
             return ls;
         }
-        
-        
-        
-                
 }
