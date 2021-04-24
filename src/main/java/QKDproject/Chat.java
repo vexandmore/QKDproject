@@ -2,6 +2,7 @@ package QKDproject;
 import java.io.*;
 import java.util.Objects;
 import QKDproject.exception.*;
+import javafx.application.Platform;
 import javafx.beans.property.*;
 
 /**
@@ -62,7 +63,7 @@ public class Chat implements MessageReader {
 			byte[] decrypted = protocol.decryptMessage(message);
 			String plaintext = Protocol.bytesToString(decrypted);
 			chatView.receiveMessage(plaintext);
-			latestMessage.set(user2.getName() + ": " + plaintext);
+			Platform.runLater(() -> latestMessage.set(user2.getName() + ": " + plaintext));
 		} catch (Throwable t) {
 			chatView.errorReceivingMessage(t);
 		}
