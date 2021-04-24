@@ -51,7 +51,7 @@ public class Chat implements MessageReader {
 	 */
 	protected void sendMessage(String plaintext) throws EncryptionException, KeyExchangeFailure {
 		channel.sendMessage(protocol.encryptMessage(Protocol.stringToBytes(plaintext)), this);
-		latestMessage.set(user1.getName() + ": " + plaintext);
+		Platform.runLater(() -> latestMessage.set(user1.getName() + ": " + plaintext));
 	} 
 	
 	/**
