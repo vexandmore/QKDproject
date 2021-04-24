@@ -1,3 +1,4 @@
+
 package QKDproject.test;
 
 import QKDproject.*;
@@ -9,17 +10,17 @@ import javafx.stage.*;
 
 /**
  *
- * @author Marc
+ * @author Marc and Raphael
  */
-public class SimpleUserWindow extends UserWindowController {
+public class SimpleUserWindow{
 	private VBox vbox;
 	private Scene mainScene;
 	private Stage mainStage;
 	private User u1;
 	
 	public SimpleUserWindow(User u) {
-		u1 = u;
-		vbox = new VBox();
+		this.u1 = u;
+		this.vbox = new VBox();
 		vbox.setPrefSize(300, 300);
 		vbox.getChildren().add(new Label("This is: " + u1.getName()));
 		
@@ -29,8 +30,13 @@ public class SimpleUserWindow extends UserWindowController {
 		mainStage.setScene(mainScene);
 		mainStage.show();
 	}
-
-	@Override
+        
+        public void openUserWindow() {
+                mainStage.show();
+        }
+        
+        
+	//@Override
 	public void addChat(Parent chatWindow, Button backButton, Chat c) {
 		Button goToChat = new Button("chat with " + c.getUser2());
 		Scene chatScene = new Scene(chatWindow);
@@ -42,9 +48,10 @@ public class SimpleUserWindow extends UserWindowController {
 			mainStage.setScene(mainScene);
 		});
 	}
-
-	@Override
+        
+	//@Override
 	public User getUser() {
 		return u1;
 	}
 }
+

@@ -23,7 +23,7 @@ public class QKAuser implements Protocol{
             }
     } 
     private static PyScript python;
-    private String key;
+    private String key = "";
     private StandardPBEByteEncryptor textEncryptor = new StandardPBEByteEncryptor();
     /*
     The idea is that each chat instance has it's own protocol
@@ -48,7 +48,7 @@ public class QKAuser implements Protocol{
         //python boolean has capital F, so I don't believe we can transfer it into a java boolean, so I keep it in string form.
         if (sC[0].equals("False")) {
             System.out.println("There has been an eavesdropping. Aborting protocol.");
-            System.exit(0);
+            throw new KeyExchangeFailure();
         }
         if (sC[1].equals("False")) {
             System.out.println("There has been an eavesdropping. Aborting protocol.");
@@ -67,7 +67,14 @@ public class QKAuser implements Protocol{
         //System.out.println(key);
         textEncryptor.setPassword(key);
     }
-
+    
+    protected boolean keyMade() {
+        if (key.equals(""))
+            return false;
+        else
+            return true; 
+    }
+    
     @Override
     public byte[] encryptMessage(byte[] message) throws EncryptionException {
             return textEncryptor.encrypt(message);     

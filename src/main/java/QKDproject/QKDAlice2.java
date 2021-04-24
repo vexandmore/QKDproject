@@ -135,7 +135,7 @@ public class QKDAlice2 implements Protocol {
 	
 	private PyScript getPython() throws IOException {
 		if (python == null)
-			python = new PyScript(SCRIPT_LOCATION, "quantum");
+			python = new PyScript(SCRIPT_LOCATION, "QiskitEngine");
 		return python;
 	}
 }

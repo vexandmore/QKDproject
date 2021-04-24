@@ -1,3 +1,4 @@
+
 package QKDproject;
 import java.io.*;
 import java.util.Objects;
@@ -8,7 +9,7 @@ import javafx.beans.property.*;
 /**
  * Controls the flow of messages; sending and receiving. Connects to a
  * CommunicationChannel and one ChatController.
- * @author Marc
+ * @author Marc and Raphael
  */
 public class Chat implements MessageReader {
 	private User user1, user2;

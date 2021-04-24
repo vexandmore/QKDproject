@@ -1,3 +1,4 @@
+
 package QKDproject;
 
 import QKDproject.exception.*;
@@ -17,7 +18,7 @@ import javafx.scene.input.*;
 
 /**
  * Controller for the Chat window.
- * @author Marc
+ * @author Marc and Raphael
  */
 public class ChatController {
 	@FXML public VBox chatGrid;
