@@ -11,7 +11,7 @@ import javafx.stage.*;
  *
  * @author Marc and Raphael
  */
-public class SimpleUserWindow extends UserWindowController {
+public class SimpleUserWindow{
 	private VBox vbox;
 	private Scene mainScene;
 	private Stage mainStage;
@@ -35,7 +35,7 @@ public class SimpleUserWindow extends UserWindowController {
         }
         
         
-	@Override
+	//@Override
 	public void addChat(Parent chatWindow, Button backButton, Chat c) {
 		Button goToChat = new Button("chat with " + c.getUser2());
 		Scene chatScene = new Scene(chatWindow);
@@ -48,7 +48,7 @@ public class SimpleUserWindow extends UserWindowController {
 		});
 	}
         
-	@Override
+	//@Override
 	public User getUser() {
 		return u1;
 	}

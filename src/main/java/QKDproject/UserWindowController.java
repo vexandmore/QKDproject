@@ -13,7 +13,7 @@ public abstract class UserWindowController {
 	 * @return 
 	 */
 	public static UserWindowController create(User u) {
-		return new QKDproject.test.SimpleUserWindow(u);
+		return new UserWindow(u);
 	}
         
         public abstract void openUserWindow();
