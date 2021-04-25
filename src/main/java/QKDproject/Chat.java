@@ -1,13 +1,15 @@
+
 package QKDproject;
 import java.io.*;
 import java.util.Objects;
 import QKDproject.exception.*;
+import javafx.application.Platform;
 import javafx.beans.property.*;
 
 /**
  * Controls the flow of messages; sending and receiving. Connects to a
  * CommunicationChannel and one ChatController.
- * @author Marc
+ * @author Marc and Raphael
  */
 public class Chat implements MessageReader {
 	private User user1, user2;
@@ -49,7 +51,7 @@ public class Chat implements MessageReader {
 	 */
 	protected void sendMessage(String plaintext) throws EncryptionException, KeyExchangeFailure {
 		channel.sendMessage(protocol.encryptMessage(Protocol.stringToBytes(plaintext)), this);
-		latestMessage.set(user1.getName() + ": " + plaintext);
+		Platform.runLater(() -> latestMessage.set(user1.getName() + ": " + plaintext));
 	} 
 	
 	/**
@@ -62,7 +64,7 @@ public class Chat implements MessageReader {
 			byte[] decrypted = protocol.decryptMessage(message);
 			String plaintext = Protocol.bytesToString(decrypted);
 			chatView.receiveMessage(plaintext);
-			latestMessage.set(user2.getName() + ": " + plaintext);
+			Platform.runLater(() -> latestMessage.set(user2.getName() + ": " + plaintext));
 		} catch (Throwable t) {
 			chatView.errorReceivingMessage(t);
 		}

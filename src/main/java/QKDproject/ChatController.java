@@ -1,3 +1,4 @@
+
 package QKDproject;
 
 import QKDproject.exception.*;
@@ -17,7 +18,7 @@ import javafx.scene.input.*;
 
 /**
  * Controller for the Chat window.
- * @author Marc
+ * @author Marc and Raphael
  */
 public class ChatController {
 	@FXML public VBox chatGrid;
@@ -25,6 +26,8 @@ public class ChatController {
 	@FXML public TextField textfield;
 	@FXML public BorderPane pane;
 	@FXML public Button sendButton;
+	@FXML public Text headerText;
+	@FXML public Button backButton;
 	private Chat chat;
 	
 	public ChatController() {
@@ -37,6 +40,7 @@ public class ChatController {
 	 */
 	protected void setChat(Chat c) {
 		this.chat = c;
+		headerText.setText("Conversation with " + c.getUser2());
 	}
 	
 	@FXML

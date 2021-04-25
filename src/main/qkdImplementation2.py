@@ -79,6 +79,7 @@ class KeySender:
         return circuits
 
 def parseQasm(qasm):
+    return QuantumCircuit.from_qasm_str(qasm)
     list = qasm.split("\n")
     if list.pop(0) != "OPENQASM 2.0;":
         raise Exception('bad qasm string on line 1')

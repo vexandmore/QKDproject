@@ -10,7 +10,7 @@ import java.io.IOException;
  * Tests QKA class
  */
 public class QKAtest {
-    public static void main(String[] args) throws IOException, DecryptionException {
+    public static void main(String[] args) throws IOException, DecryptionException, KeyExchangeFailure, EncryptionException {
         //System.out.println("w/o Eve");
         QKA test = new QKA(false, 0.5);
         QKAuser alice = new QKAuser();
@@ -18,10 +18,10 @@ public class QKAtest {
         alice.connect(bob);
         
         test.makeKey(alice,bob);
-        String testMessage = "Hello World";
-        String encrypted = alice.encryptMessage(testMessage);
-        String decrypted = bob.decryptMessage(encrypted);
-        System.out.println(decrypted);
+        byte[] testMessage = Protocol.stringToBytes("Hello there");
+        byte[] encrypted = alice.encryptMessage(testMessage);
+        byte[] decrypted = bob.decryptMessage(encrypted);
+        System.out.println(Protocol.bytesToString(decrypted));
         
     }
 }

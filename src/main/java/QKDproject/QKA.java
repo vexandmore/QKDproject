@@ -1,4 +1,5 @@
 package QKDproject;
+import QKDproject.exception.KeyExchangeFailure;
 import java.io.File;
 import java.io.IOException;
 
@@ -30,7 +31,7 @@ public class QKA {
         this.securityProperty = securityProperty;
     }
     
-    public void makeKey(QKAuser Alice, QKAuser Bob) throws IOException {
+    public void makeKey(QKAuser Alice, QKAuser Bob) throws IOException, KeyExchangeFailure {
         /*
         in Alice's POV
         GiveData: Gives her own key, decoy bits, and everything else

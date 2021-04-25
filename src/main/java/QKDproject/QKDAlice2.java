@@ -1,13 +1,11 @@
 package QKDproject;
 
-import static QKDproject.QKDAlice.bitStringToArray;
 import static QKDproject.QKDAlice.keepAtIndices;
 import static QKDproject.QKDAlice.removeAtIndices;
 import QKDproject.exception.*;
-import com.google.crypto.tink.subtle.AesGcmJce;
-import org.jasypt.commons.CommonUtils;
+import org.jasypt.encryption.pbe.StandardPBEByteEncryptor;
+import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 import java.io.*;
-import java.security.GeneralSecurityException;
 import java.util.*;
 
 /**
@@ -15,9 +13,10 @@ import java.util.*;
  * @author Marc
  */
 public class QKDAlice2 implements Protocol {
-	private byte[] key;
+	private String key;
+	private StandardPBEByteEncryptor textEncryptor = new StandardPBEByteEncryptor();
 	protected QKDChannel channel;
-	public final static int KEY_SIZE = 16;
+	public final static int KEY_SIZE = 3;
 	private final int securityLevel;
 	private String alice_bits, alice_bases, alice_circuits;
 	private String alice_sample = "", alice_matching_measured = "";
@@ -96,9 +95,9 @@ public class QKDAlice2 implements Protocol {
 	protected boolean samplesMatch(String bobSample, List<Integer> sampleIndices) {
 		alice_sample = keepAtIndices(sampleIndices, alice_matching_measured);
 		if (alice_sample.equals(bobSample)) {
-			String aliceKey = removeAtIndices(sampleIndices, alice_matching_measured);
-			System.out.println("a: " + aliceKey);
-			this.key = bitStringToArray(aliceKey, KEY_SIZE);
+			this.key = removeAtIndices(sampleIndices, alice_matching_measured);
+			textEncryptor.setPassword(this.key);
+			System.out.println("a: " + this.key);
 			return true;
 		} else {
 			return alice_sample.equals(bobSample);
@@ -111,11 +110,9 @@ public class QKDAlice2 implements Protocol {
 			makeKey();
 		}
 		try {
-			AesGcmJce a = new AesGcmJce(key);
-			byte[] encrypted = a.encrypt(message, new byte[0]);
-			return encrypted;
-		} catch (GeneralSecurityException ex) {
-			throw new EncryptionException(ex);
+			return textEncryptor.encrypt(message);
+		} catch (EncryptionOperationNotPossibleException e) {
+			throw new EncryptionException(e);
 		}
 	}
 	
@@ -125,17 +122,15 @@ public class QKDAlice2 implements Protocol {
 			makeKey();
 		}
 		try {
-			AesGcmJce a = new AesGcmJce(key);
-			byte[] decrypted = a.decrypt(encryptedMessage, new byte[0]);
-			return decrypted;
-		} catch (GeneralSecurityException ex) {
-			throw new DecryptionException(ex);
+			return textEncryptor.decrypt(encryptedMessage);
+		} catch(EncryptionOperationNotPossibleException e) {
+			throw new DecryptionException(e);
 		}
 	}
 	
 	private PyScript getPython() throws IOException {
 		if (python == null)
-			python = new PyScript(SCRIPT_LOCATION, "quantum");
+			python = new PyScript(SCRIPT_LOCATION, "QiskitEngine");
 		return python;
 	}
 }

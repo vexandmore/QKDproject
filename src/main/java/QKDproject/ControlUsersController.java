@@ -1,5 +1,7 @@
+
 package QKDproject;
 
+import QKDproject.test.SimpleUserWindow;
 import javafx.fxml.FXML;
 import javafx.scene.layout.*;
 import java.util.*;
@@ -18,13 +20,14 @@ import javafx.stage.Stage;
 
 /**
  * JavaFX Controller for the Control Users window.
- * @author Marc
+ * @author Marc and Raphael
  */
 public class ControlUsersController {
 	private ObservableList<User> users = FXCollections.observableList(new ArrayList<>());
 	private HashMap<User, HashMap<User, Chat>> chatInstances = new HashMap<>();
 	private HashMap<Pair<User>, EncryptionParameters> encryptionSettings = new HashMap<>();
 	private HashMap<User, EncryptionGuis> guiComponents = new HashMap<>();
+	private HashMap<User, UserWindowController> userWindows = new HashMap<>();
 	@FXML private GridPane grid;
 	@FXML private TextField usernameField;
 	private int numUsers = 0;
@@ -65,8 +68,9 @@ public class ControlUsersController {
 		});
 
 		numUsers++;
-		//Add HashMaps in chatInstances
+		//Add HashMap in chatInstances and create user window
 		chatInstances.put(newUser, new HashMap<>());
+		userWindows.put(newUser, UserWindowController.create(newUser));
 		//Create and place GUI components for changing the encryption settings
 		EncryptionGuis gui = new EncryptionGuis(newUser, otherUsers);
 		guiComponents.put(newUser, gui);
@@ -88,7 +92,7 @@ public class ControlUsersController {
 						"Invalid settings for encryption").showAndWait();
 			});
 		});
-
+                
 		//Set the action for the user dropdown
 		gui.setOnUserSelect((ActionEvent ae) -> {
 			User selected = gui.getSelected();
@@ -100,6 +104,11 @@ public class ControlUsersController {
 				guiComponents.get(newUser).reset();
 			}
 		});
+                //Set the action to re-open the user window if it has been closed.
+                //(This is a mainly a quality of life improvement)
+                gui.setOnOpen(eh -> {
+                        userWindows.get(newUser).openUserWindow();
+                });
 
 	}
 	
@@ -111,7 +120,7 @@ public class ControlUsersController {
 				return false;
 		return true;
 	}
-	
+        
 	private void setEncryption(EncryptionParameters params, User u1, User u2) {
 		try {
 			Protocol[] protocols = params.makeProtocols();
@@ -125,30 +134,19 @@ public class ControlUsersController {
 				//Load guis and make Chat instances
 				FXMLLoader loader = new FXMLLoader(getClass().getResource("ChatMockup.fxml"));
 				Parent root = loader.load();
-				ChatController controller1 = loader.getController();
-				Scene scene = new Scene(root);
-				Stage stage = new Stage();
-				stage.setTitle("Chat window 1: " + u1.getName());
-				stage.setScene(scene);
-				stage.show();
+				ChatController controller1 = loader.getController();				
+				
 				//load gui 2
 				FXMLLoader loader2 = new FXMLLoader(getClass().getResource("ChatMockup.fxml"));
-				Stage stage2 = new Stage();
 				Parent root2 = loader2.load();
 				ChatController controller2 = loader2.getController();
-				Scene scene2 = new Scene(root2);
-				stage2.setTitle("Chat window 2: " + u2.getName());
-				stage2.setScene(scene2);
-				stage2.show();
+				
 				//connect it all up
 				Chat chat1 = new Chat(u1, u2, protocols[0], controller1, channel);
 				Chat chat2 = new Chat(u2, u1, protocols[1], controller2, channel);
-				//test code
-				/*ChangeListener<String> listener = (ObservableValue<? extends String> val, String oldval, String newval) -> {
-					System.out.println(newval);
-				};
-				chat1.latestMessageProperty().addListener(listener);*/
-				//test code
+				//show the windows
+				userWindows.get(u1).addChat(root, controller1.backButton, chat1);
+				userWindows.get(u2).addChat(root2, controller2.backButton, chat2);
 				
 				channel.addListener(chat1);
 				channel.addListener(chat2);
@@ -159,6 +157,7 @@ public class ControlUsersController {
 		} catch (Exception e) {
 			new Alert(Alert.AlertType.ERROR, "Error creating chat windows: "
 					+ e.getMessage()).showAndWait();
+			e.printStackTrace();
 		}
 	}
 }
@@ -174,6 +173,7 @@ class EncryptionGuis {
 	private final CheckBox eavesdropperSelector;
 	private final TextField securitySelector;
 	private final Button applyBtn;
+        private final Button userWindowBtn;
 	public final Node[] nodesArr;
 	private final static Pattern numberPattern = Pattern.compile("\\d+\\.\\d+|\\d+");
 	private final static ObservableList<EncryptionParameters.EncryptionType> encryptionTypes = 
@@ -181,7 +181,7 @@ class EncryptionGuis {
 	
 	/**
 	 * Creates an EncryptionGuis with the given user and list of other users.
-	 * @param thisUser Primary user for this gui.
+	 * @param thisUser Primary user for this GUI.
 	 * @param otherUsers Observable list of other users thisUser could talk to.
 	 */
 	public EncryptionGuis(User thisUser, ObservableList<User> otherUsers) {
@@ -192,14 +192,20 @@ class EncryptionGuis {
 		typeSelector.setItems(encryptionTypes);
 		eavesdropperSelector = new CheckBox();
 		applyBtn = new Button("Apply");
+                userWindowBtn = new Button("User Window");
 		securitySelector = new TextField();
-		nodesArr = new Node[] {thisUserLabel, userSelector, typeSelector, securitySelector, eavesdropperSelector, applyBtn};
-	}
+		nodesArr = new Node[] {thisUserLabel, userSelector, typeSelector, securitySelector, eavesdropperSelector, applyBtn, userWindowBtn};
+	
+        }
 	
 	/**
-	 * Set the action that occurs when the apply button is presed.
+	 * Set the action that occurs when the apply button is pressed.
 	 * @param eh Event handler for the apply button.
 	 */
+        public void setOnOpen(EventHandler<ActionEvent> eh) {
+                userWindowBtn.setOnAction(eh);
+        }
+        
 	public void setOnApply(EventHandler<ActionEvent> eh) {
 		applyBtn.setOnAction(eh);
 	}
@@ -278,4 +284,3 @@ final class Pair<T> {
 				u1.equals(other.u2) && u2.equals(other.u1));
 	}
 }
-

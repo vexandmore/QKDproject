@@ -1,8 +1,12 @@
 package QKDproject;
 
+import QKDproject.exception.DecryptionException;
+import QKDproject.exception.EncryptionException;
+import QKDproject.exception.KeyExchangeFailure;
+
 /**
  * Encapsulates the current encryption parameters between two users.
- * @author Marc
+ * @author Marc and Raphael
  */
 public class EncryptionParameters {
 	public enum EncryptionType {
@@ -35,7 +39,56 @@ public class EncryptionParameters {
 			out[1] = bob;
 			return out;
 		} else {
-			throw new IllegalStateException("QKA not implemented");
+			QKA test = new QKA(eavesdropped, security);
+			//This is made as a one element array so whether or not the key is made
+			//is a state that will be shared between both QKA users.
+			
+			QKAuser alice = new QKAuser();
+			QKAuser bob = new QKAuser();
+			alice.connect(bob);
+			
+			Protocol a = new Protocol() {
+				@Override
+				public byte[] encryptMessage(byte[] message) throws KeyExchangeFailure, EncryptionException {
+					if (alice.keyMade()) {
+						return alice.encryptMessage(message);
+					} else {
+						try {
+							test.makeKey(alice, bob);
+							return alice.encryptMessage(message);
+						} catch (java.io.IOException e) {
+							throw new KeyExchangeFailure(e);
+						}
+					}
+				}
+				@Override
+				public byte[] decryptMessage(byte[] encryptedMessage) throws KeyExchangeFailure, DecryptionException {
+					return alice.decryptMessage(encryptedMessage);
+				}
+			};
+			
+			Protocol b = new Protocol() {
+				@Override
+				public byte[] encryptMessage(byte[] message) throws KeyExchangeFailure, EncryptionException {
+					if (bob.keyMade()) {
+						return bob.encryptMessage(message);
+					} else {
+						try {
+							test.makeKey(alice, bob);
+							return bob.encryptMessage(message);
+						} catch (java.io.IOException e) {
+							throw new KeyExchangeFailure(e);
+						}
+					}
+				}
+				@Override
+				public byte[] decryptMessage(byte[] encryptedMessage) throws KeyExchangeFailure, DecryptionException {
+					return bob.decryptMessage(encryptedMessage);
+				}
+			};
+			out[0] = a;
+			out[1] = b;
+			return out;
 		}
 	}
 }
