@@ -6,16 +6,18 @@ import static QKDproject.QKDAlice.sampleIndices;
 import static QKDproject.QKDAlice.removeAtIndices;
 import QKDproject.exception.*;
 import com.google.crypto.tink.subtle.AesGcmJce;
-import java.security.GeneralSecurityException;
+import org.jasypt.encryption.pbe.StandardPBEByteEncryptor;
 import java.util.*;
 import java.io.*;
+import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 
 /**
  *
  * @author Marc
  */
 public class QKDBob2 implements Protocol {
-	private byte[] key;
+	private String key;
+	private StandardPBEByteEncryptor textEncryptor = new StandardPBEByteEncryptor();
 	private String bob_bases = "", bob_results = "";
 	private String bob_matching_measured = "";
 	protected QKDChannel alice;
@@ -64,9 +66,9 @@ public class QKDBob2 implements Protocol {
 			String bob_sample = keepAtIndices(sampleIndices, bob_matching_measured);
 			if (alice.samplesMatch(bob_sample, sampleIndices)) {
 				//make the key here
-				String bob_key = removeAtIndices(sampleIndices, bob_matching_measured);
-				System.out.println("b: " + bob_key);
-				key = bitStringToArray(bob_key, QKDAlice.KEY_SIZE);
+				this.key = removeAtIndices(sampleIndices, bob_matching_measured);
+				this.textEncryptor.setPassword(key);
+				System.out.println("b: " + this.key);
 				keyMade = true;
 			} else {
 				//System.out.println("Key not made, eavesdropper or noise");
@@ -84,11 +86,9 @@ public class QKDBob2 implements Protocol {
 			alice.makeKey();
 		}
 		try {
-			AesGcmJce a = new AesGcmJce(key);
-			byte[] encrypted = a.encrypt(message, new byte[0]);
-			return encrypted;
-		} catch (GeneralSecurityException ex) {
-			throw new EncryptionException(ex);
+			return textEncryptor.encrypt(message);
+		} catch (EncryptionOperationNotPossibleException e) {
+			throw new EncryptionException(e);
 		}
 	}
 	
@@ -98,11 +98,9 @@ public class QKDBob2 implements Protocol {
 			alice.makeKey();
 		}
 		try {
-			AesGcmJce a = new AesGcmJce(key);
-			byte[] decrypted = a.decrypt(encryptedMessage, new byte[0]);
-			return decrypted;
-		} catch (GeneralSecurityException ex) {
-			throw new DecryptionException(ex);
+			return textEncryptor.decrypt(encryptedMessage);
+		} catch (EncryptionOperationNotPossibleException e) {
+			throw new DecryptionException(e);
 		}
 	}
 	

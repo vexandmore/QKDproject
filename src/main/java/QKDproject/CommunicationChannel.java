@@ -19,6 +19,7 @@ public class CommunicationChannel {
 	 * @param caller 
 	 */
 	public void sendMessage(byte[] message, MessageReader caller) {
+		System.out.println("Message: " + Protocol.bytesToString(message));
 		for (MessageReader m: listeners) {
 			if (m != caller)
 				m.newMessageAvailable(message);

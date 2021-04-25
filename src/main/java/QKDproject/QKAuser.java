@@ -64,7 +64,7 @@ public class QKAuser implements Protocol{
     protected void makeKey(String[] data) throws IOException {
 
         key = getPython().getResults(data[0], data[1], data[2], data[3], data[4], data[5], "placeholder");
-        //System.out.println(key);
+        System.out.println(key);
         textEncryptor.setPassword(key);
     }
     
