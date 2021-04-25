@@ -20,6 +20,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
@@ -42,11 +43,11 @@ public class UserWindow extends UserWindowController{
     private GridPane grid;
     private final BorderPane border;
     private int numOthers = 0;
-    
+    private ScrollPane scroll;
     
     public UserWindow(User u) {  
         this.border = new BorderPane();
-        border.setPrefSize(300, 350);
+        border.setPrefSize(450, 350);
         this.hbox = new HBox();
         this.hbox.setPadding(new Insets(15, 12, 15, 12));
         this.hbox.setSpacing(10);
@@ -59,13 +60,22 @@ public class UserWindow extends UserWindowController{
         
         
         this.border.setTop(hbox);
-
+        
+        this.scroll = new ScrollPane();
+        scroll.prefWidthProperty().bind(border.widthProperty());
+        
         this.grid = new GridPane();
-        ColumnConstraints col1 = new ColumnConstraints(200);
-        ColumnConstraints col2 = new ColumnConstraints(100);
+        grid.prefWidthProperty().bind(scroll.widthProperty().subtract(20));
+        ColumnConstraints col1 = new ColumnConstraints();
+        ColumnConstraints col2 = new ColumnConstraints();
+        col1.setPercentWidth(75);
+        col2.setPercentWidth(25);
         grid.getColumnConstraints().addAll(col1, col2);
         
-        this.border.setCenter(grid);
+        
+        scroll.setContent(grid);
+        
+        this.border.setCenter(scroll);
 
         mainStage = new Stage();
         mainStage.setTitle(u1.getName() + "'s chats");
