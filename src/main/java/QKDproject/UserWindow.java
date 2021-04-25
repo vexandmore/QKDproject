@@ -65,7 +65,7 @@ public class UserWindow extends UserWindowController{
         scroll.prefWidthProperty().bind(border.widthProperty());
         
         this.grid = new GridPane();
-        grid.prefWidthProperty().bind(scroll.widthProperty());
+        grid.prefWidthProperty().bind(scroll.widthProperty().subtract(20));
         ColumnConstraints col1 = new ColumnConstraints();
         ColumnConstraints col2 = new ColumnConstraints();
         col1.setPercentWidth(75);
