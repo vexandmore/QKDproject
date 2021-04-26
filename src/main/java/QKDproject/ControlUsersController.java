@@ -202,7 +202,7 @@ class EncryptionGuis {
 				securitySelector.setMax(50);
 				securitySelector.setMajorTickUnit(5);
 			} else {
-				securitySelector.setMax(0.5);
+				securitySelector.setMax(0.6);
 				securitySelector.setMajorTickUnit(0.1);
 			}
 			securitySelector.setVisible(true);
@@ -251,7 +251,7 @@ class EncryptionGuis {
 			securitySelector.setMax(50);
 			securitySelector.setMajorTickUnit(5);
 		} else {
-			securitySelector.setMax(0.5);
+			securitySelector.setMax(0.6);
 			securitySelector.setMajorTickUnit(0.1);
 		}
 		this.securitySelector.setValue(params.security);
