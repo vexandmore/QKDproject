@@ -171,11 +171,10 @@ class EncryptionGuis {
 	private final ComboBox<User> userSelector;
 	private final ComboBox<EncryptionParameters.EncryptionType> typeSelector;
 	private final CheckBox eavesdropperSelector;
-	private final TextField securitySelector;
+	private final Slider securitySelector;
 	private final Button applyBtn;
         private final Button userWindowBtn;
 	public final Node[] nodesArr;
-	private final static Pattern numberPattern = Pattern.compile("\\d+\\.\\d+|\\d+");
 	private final static ObservableList<EncryptionParameters.EncryptionType> encryptionTypes = 
 			FXCollections.observableArrayList(EncryptionParameters.EncryptionType.values());
 	
@@ -193,7 +192,17 @@ class EncryptionGuis {
 		eavesdropperSelector = new CheckBox();
 		applyBtn = new Button("Apply");
                 userWindowBtn = new Button("User Window");
-		securitySelector = new TextField();
+		securitySelector = new Slider(0, 1, 0.5);
+		securitySelector.setShowTickMarks(true);
+		securitySelector.setShowTickLabels(true);
+		typeSelector.setOnAction(ae -> {
+			if (typeSelector.getSelectionModel().getSelectedItem() == EncryptionParameters.EncryptionType.QKD) {
+				securitySelector.setMax(50);
+			} else {
+				securitySelector.setMax(1);
+			}
+		});
+		
 		nodesArr = new Node[] {thisUserLabel, userSelector, typeSelector, securitySelector, eavesdropperSelector, applyBtn, userWindowBtn};
 	
         }
@@ -224,7 +233,7 @@ class EncryptionGuis {
 	public void reset() {
 		typeSelector.getSelectionModel().clearSelection();
 		eavesdropperSelector.selectedProperty().set(false);
-		securitySelector.clear();
+		//securitySelector.clear();
 	}
 	
 	/**
@@ -234,7 +243,7 @@ class EncryptionGuis {
 	public void setState(EncryptionParameters params) {
 		this.typeSelector.getSelectionModel().select(params.type);
 		this.eavesdropperSelector.selectedProperty().set(params.eavesdropped);
-		this.securitySelector.setText(params.security + "");
+		this.securitySelector.setValue(params.security);
 	}
 	
 	/**
@@ -243,14 +252,13 @@ class EncryptionGuis {
 	 * @return Optional of the encryption parameters represented by this, or an empty.
 	 */
 	public Optional<EncryptionParameters> getState() {
-		if (typeSelector.getSelectionModel().getSelectedIndex() == -1
-				|| !numberPattern.matcher(securitySelector.getText()).matches()) {
+		if (typeSelector.getSelectionModel().getSelectedIndex() == -1) {
 			return Optional.empty();
 		}
 		return Optional.of(new EncryptionParameters(
 				typeSelector.getSelectionModel().getSelectedItem(),
 				eavesdropperSelector.selectedProperty().get(),
-				Double.parseDouble(securitySelector.getText())));
+				securitySelector.getValue()));
 	}
 	
 	public User getSelected() {
