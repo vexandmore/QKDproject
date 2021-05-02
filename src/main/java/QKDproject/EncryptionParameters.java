@@ -10,8 +10,15 @@ import QKDproject.exception.KeyExchangeFailure;
  */
 public class EncryptionParameters {
 	public enum EncryptionType {
-		QKD,
-		QKA
+		QKD(50),
+		QKA(0.6);
+		
+		public final double maxSecurityValue;
+		
+		EncryptionType(double maxSecurityValue) {
+			this.maxSecurityValue = maxSecurityValue;
+		}
+		
 	}
 	
 	public final EncryptionType type;

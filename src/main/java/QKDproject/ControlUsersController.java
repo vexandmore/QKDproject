@@ -198,13 +198,9 @@ class EncryptionGuis {
 		securitySelector.setShowTickMarks(true);
 		securitySelector.setShowTickLabels(true);
 		typeSelector.setOnAction(ae -> {
-			if (typeSelector.getSelectionModel().getSelectedItem() == EncryptionParameters.EncryptionType.QKD) {
-				securitySelector.setMax(50);
-				securitySelector.setMajorTickUnit(5);
-			} else {
-				securitySelector.setMax(0.6);
-				securitySelector.setMajorTickUnit(0.1);
-			}
+			double maxSecurity = typeSelector.getSelectionModel().getSelectedItem().maxSecurityValue;
+			securitySelector.setMax(maxSecurity);
+			securitySelector.setMajorTickUnit(maxSecurity / 5);
 			securitySelector.setVisible(true);
 		});
 		nodesArr = new Node[] {thisUserLabel, userSelector, typeSelector, securitySelector, eavesdropperSelector, applyBtn, userWindowBtn};
@@ -247,13 +243,9 @@ class EncryptionGuis {
 		this.typeSelector.getSelectionModel().select(params.type);
 		this.eavesdropperSelector.selectedProperty().set(params.eavesdropped);
 		
-		if (params.type == EncryptionParameters.EncryptionType.QKD) {
-			securitySelector.setMax(50);
-			securitySelector.setMajorTickUnit(5);
-		} else {
-			securitySelector.setMax(0.6);
-			securitySelector.setMajorTickUnit(0.1);
-		}
+		double maxSecurity = typeSelector.getSelectionModel().getSelectedItem().maxSecurityValue;
+		securitySelector.setMax(maxSecurity);
+		securitySelector.setMajorTickUnit(maxSecurity / 5);
 		this.securitySelector.setValue(params.security);
 		this.securitySelector.setVisible(true);
 	}
