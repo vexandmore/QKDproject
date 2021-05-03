@@ -15,9 +15,10 @@ distributions {
 	main {
 		distributionBaseName = "QKDproject"
 		contents {
-			from "src/main/pythonTest.py"
-			from "src/main/qkdImplementation2.py"
-			from "src/main/qkaImplementationFINAL.py"
+			from "pythonTest.py"
+			from "qkdImplementation2.py"
+			from "qkdImplementation.py"
+			from "qkaImplementationFINAL.py"
 		}
 	}
 }
@@ -35,4 +36,4 @@ javafx {
     modules = [  'javafx.controls', 'javafx.fxml', 'javafx.media' ]
 }
 
-mainClassName = 'QKDproject.Main';
+mainClassName = 'QKDproject/QKDproject.Main';

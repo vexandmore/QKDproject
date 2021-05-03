@@ -65,9 +65,7 @@ public class PyScript {
 	private static synchronized void detectEnvironment() throws IOException {
 		if (env != null)
 			return;
-		String testScript = new File(".").getCanonicalPath() + 
-                                    File.separatorChar + "src" + File.separatorChar + "main" + 
-                                    File.separatorChar + "pythonTest.py";
+		String testScript = new File(".").getCanonicalPath() + File.separatorChar + "pythonTest.py";
 		//see if builtin Python in windows will work
 		try {
 			ProcessBuilder pb = new ProcessBuilder("py", testScript);

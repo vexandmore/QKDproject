@@ -16,7 +16,7 @@ public class QkdPythonTest {
 			Tester test = new Tester();
 			test.testPython();
 		} catch (IOException e) {
-			
+			System.err.println("Test failed: " + e.getLocalizedMessage());
 		}
 	}
 }
@@ -30,9 +30,7 @@ class Tester {
 
 	static {
 		try {
-			SCRIPT_LOCATION = new File(".").getCanonicalPath()
-					+ File.separatorChar + "src" + File.separatorChar + "main"
-					+ File.separatorChar + "qkdImplementation.py";
+			SCRIPT_LOCATION = new File(".").getCanonicalPath() + File.separatorChar + "qkdImplementation.py";
 		} catch (IOException e) {
 			SCRIPT_LOCATION = "error getting script location";
 		}
