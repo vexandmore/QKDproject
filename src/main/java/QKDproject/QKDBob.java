@@ -21,9 +21,7 @@ public class QKDBob implements Protocol {
 	private static String SCRIPT_LOCATION;
 	static {
 		try {
-			SCRIPT_LOCATION = new File(".").getCanonicalPath() + 
-					File.separatorChar + "src" + File.separatorChar + "main" + 
-					File.separatorChar + "qkdImplementation.py";
+			SCRIPT_LOCATION = new File(".").getCanonicalPath() + File.separatorChar + "qkdImplementation.py";
 		} catch (IOException e) {
 			SCRIPT_LOCATION = "error getting script location";
 		}

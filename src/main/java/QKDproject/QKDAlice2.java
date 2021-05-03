@@ -27,9 +27,7 @@ public class QKDAlice2 implements Protocol {
 	private static String SCRIPT_LOCATION;
 	static {
 		try {
-			SCRIPT_LOCATION = new File(".").getCanonicalPath() + 
-					File.separatorChar + "src" + File.separatorChar + "main" + 
-					File.separatorChar + "qkdImplementation2.py";
+			SCRIPT_LOCATION = new File(".").getCanonicalPath() + File.separatorChar + "qkdImplementation2.py";
 		} catch (IOException e) {
 			SCRIPT_LOCATION = "error getting script location";
 		}

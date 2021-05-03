@@ -13,9 +13,7 @@ public class QKA {
     private static String SCRIPT_LOCATION;
     static {
             try {
-                    SCRIPT_LOCATION = new File(".").getCanonicalPath() + 
-                                    File.separatorChar + "src" + File.separatorChar + "main" + 
-                                    File.separatorChar + "qkaImplementationFINAL.py";
+                    SCRIPT_LOCATION = new File(".").getCanonicalPath() + File.separatorChar + "qkaImplementationFINAL.py";
             } catch (IOException e) {
                     SCRIPT_LOCATION = "error getting script location";
             }

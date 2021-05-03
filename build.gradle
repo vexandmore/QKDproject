@@ -11,6 +11,18 @@ repositories {
     mavenCentral()
 }
 
+distributions {
+	main {
+		distributionBaseName = "QKDproject"
+		contents {
+			from "pythonTest.py"
+			from "qkdImplementation2.py"
+			from "qkdImplementation.py"
+			from "qkaImplementationFINAL.py"
+		}
+	}
+}
+
 dependencies {
     //testImplementation     'junit:junit:4.13'
     compile group: 'org.openjfx', name: 'javafx-media', version: '14'
@@ -23,25 +35,5 @@ javafx {
     version = "14"
     modules = [  'javafx.controls', 'javafx.fxml', 'javafx.media' ]
 }
-//mainClassName = 'MyPkg.CH_31.JavaFX_FXML.MainApp'
-//mainClassName = 'MyPkg.CH_14.AExecuter.Main'
-//mainClassName = 'MyPkg.CH_15.EventsAndAnimations._15_Q5_ScalingFigure'
-//mainClassName = 'MyPkg.CH_16.UIControlsAndMultimedia._16_01_LabelWithGraphic'
-//mainClassName = 'MyPkg.CH_16.UIControlsAndMultimedia._16_02_ButtonDemo'
-//mainClassName = 'MyPkg.CH_16.UIControlsAndMultimedia._16_03_CheckBoxDemo'
-//mainClassName = 'MyPkg.CH_16.UIControlsAndMultimedia._16_04_RadioButtonDemo'
-//mainClassName = 'MyPkg.CH_16.UIControlsAndMultimedia._16_05_TextFieldDemo'
-//mainClassName = 'MyPkg.CH_16.UIControlsAndMultimedia._16_07_TextAreaDemo'
-//mainClassName = 'MyPkg.CH_16.UIControlsAndMultimedia._16_08_ComboBoxDemo'
-//mainClassName = 'MyPkg.CH_16.UIControlsAndMultimedia._16_09_ListViewDemo'
-//mainClassName = 'MyPkg.CH_16.UIControlsAndMultimedia._16_10_ScrollBarDemo'
-//mainClassName = 'MyPkg.CH_16.UIControlsAndMultimedia._16_11_SliderDemo'
-//mainClassName = 'MyPkg.CH_16.UIControlsAndMultimedia._16_14_MediaDemo'
 
-//mainClassName = 'MyPkg.CH_31.JavaFXAdvance._31_09_MenuDemo';
-//mainClassName = 'MyPkg.CH_31.JavaFXAdvance._31_10_ContextMenuDemo';
-//mainClassName = 'MyPkg.CH_31.JavaFXAdvance.TableViewGUI';
-//mainClassName = 'MyPkg.CH_32.Threads._32_01_TaskThreadDemo';
-mainClassName = 'QKDproject.Main';
-
-//mainClassName = 'MyPkg.CH_15.EventsAndAnimations._15_13_FlagRisingAnimation';
+mainClassName = 'QKDproject/QKDproject.Main';
