@@ -191,17 +191,19 @@ class EncryptionGuis {
 		typeSelector.setItems(encryptionTypes);
 		eavesdropperSelector = new CheckBox();
 		applyBtn = new Button("Apply");
-                userWindowBtn = new Button("User Window");
+        userWindowBtn = new Button("User Window");
 				
 		securitySelector = new Slider(0, 1, 0.5);
 		securitySelector.setVisible(false);
 		securitySelector.setShowTickMarks(true);
 		securitySelector.setShowTickLabels(true);
 		typeSelector.setOnAction(ae -> {
-			double maxSecurity = typeSelector.getSelectionModel().getSelectedItem().maxSecurityValue;
-			securitySelector.setMax(maxSecurity);
-			securitySelector.setMajorTickUnit(maxSecurity / 5);
-			securitySelector.setVisible(true);
+			if (typeSelector.getSelectionModel().getSelectedItem() != null) {
+				double maxSecurity = typeSelector.getSelectionModel().getSelectedItem().maxSecurityValue;
+				securitySelector.setMax(maxSecurity);
+				securitySelector.setMajorTickUnit(maxSecurity / 5);
+				securitySelector.setVisible(true);
+			}
 		});
 		nodesArr = new Node[] {thisUserLabel, userSelector, typeSelector, securitySelector, eavesdropperSelector, applyBtn, userWindowBtn};
     }
@@ -256,7 +258,8 @@ class EncryptionGuis {
 	 * @return Optional of the encryption parameters represented by this, or an empty.
 	 */
 	public Optional<EncryptionParameters> getState() {
-		if (typeSelector.getSelectionModel().getSelectedIndex() == -1) {
+		if (typeSelector.getSelectionModel().getSelectedIndex() == -1
+				|| userSelector.getSelectionModel().getSelectedIndex() == -1) {
 			return Optional.empty();
 		}
 		return Optional.of(new EncryptionParameters(

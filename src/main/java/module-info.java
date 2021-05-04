@@ -1,6 +1,5 @@
 
 module QKDproject {
-	requires javafx.mediaEmpty;
 	requires javafx.media;
 	requires tink.android;
 	requires jasypt;
