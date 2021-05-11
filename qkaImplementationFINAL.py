@@ -179,22 +179,23 @@ class Contributor(Sender, Receiver):
             n = 24
             """NEW DEFINITION
             s: shuffled list, s_: encoded shuffled list, s__: encoded shuffled list with decoys"""
-        
+            """what is different about the new definition is that now the shuffled list
+            is encoded, and not that the encoded list is shuffled"""
+            
             self.K = Contributor.cbits(n)
             self.seed = np.random.randint(1,101)
         
             Ktemp = (''.join(map(str, self.K)))
             self.Kkey = int(Ktemp)
-            """what is different about the new definition is that now the shuffled list
-            is encoded, and not that the encoded list is shuffled"""
-
+            
             random.Random(self.seed).shuffle(self.K)
             S = self.K[:]
             self.K = self.unshuffle(self.K, self.seed)
         
-            self.bS = list(Contributor.cbits(len(S)))
             H_ = Contributor.decimalToBinary(hash(Ktemp))
             H = [int(x) for x in str(H_)]
+            
+            self.bS = list(Contributor.cbits(len(S)))
             self.bH = list(Contributor.cbits(len(H)))
           
             sentS = Contributor.send(len(S), S, self.bS)
@@ -226,8 +227,28 @@ class Contributor(Sender, Receiver):
             self.S__ = Contributor.insertDecoys(dS, S_, self.pos_dS)
             self.C_ = Contributor.insertDecoys(dC, C, self.pos_dC)
             
-
-
+class Eavesdropper(Sender):
+    def __init__(self, backend):
+        self.backend = backend
+        
+    def interceptAndResend(self, ls):
+        newls = self.measure(ls, Contributor.cbits(len(ls)))
+        sender = Sender(None, newls, Contributor.cbits(len(ls)))
+        return sender.makeSendCircuits()
+        
+    def measure(self, ls, ba):
+        sendCircuits = ls[:]
+        recCircuits = Contributor.createRecCircuits(len(ba), ba)
+        mes = []
+        for i in range(len(sendCircuits)):
+            sendAndReceive = sendCircuits[i] + recCircuits[i]
+            result = execute(sendAndReceive, self.backend, shots=1, memory=True).result()
+            measured_bit = int(result.get_memory()[0])
+            mes.append(measured_bit)
+        return mes    
+     
+        
+     
 def GiveData(strsecurityProperty, backend):
     securityProperty = float(strsecurityProperty)
     user = Contributor(securityProperty, backend, None, None, None)
@@ -355,7 +376,7 @@ def makeKey(ownKkey, jS_, jC, seed, bS, bH, backend):
     S = user.measure2(S_, bS)
     H = user.measure2(C, bH)
     K = int(''.join(map(str, user.unshuffle(S, seed))))
-    #securityCheck2(H,K)
+    Contributor.checkHash(H,S)
     print(K^user.Kkey)
 
 """
@@ -377,6 +398,9 @@ def mainTest():
     strownKkey, strbi_dS, strbi_dC, strS__, strC_, pos_dS, pos_dC, ba_dS, ba_dC, seed, bS, bH = GiveData(securityProperty, backend)
     #Bob
     strownKkey2, strbi_dS2, strbi_dC2, strS__2, strC_2, pos_dS2, pos_dC2, ba_dS2, ba_dC2, seed2, bS2, bH2 = GiveData(securityProperty, backend)
+    
+    Intercepted(strS__, strC_, backend)
+    
     #ReceiveData1
     #Alice
     AdS, AdC, AS_, AC = ReceiveData1(strS__2, strC_2, pos_dS2, pos_dC2, ba_dS2, ba_dC2, backend)
@@ -445,7 +469,7 @@ def main():
         if len(inArgs) == 2: #Eve intercepts
             S__ = inArgs[0]
             C_ = inArgs[1]
-            Interecepted(S__, C_, backend)
+            Intercepted(S__, C_, backend)
             
  
 #mainTest()
