@@ -75,8 +75,9 @@ class Contributor(Sender, Receiver):
         temp = (hash1 == hash2)
         for i in range(temp):
             if temp[i] == False:
-                return True
-        return False
+                print('Fails')
+            
+            
         
     def checkDecoy(self, dS, dC):
         """returns if there has been eavesdropping (False), no eavesdropping (True)"""
@@ -347,8 +348,7 @@ def ReceiveData1(json_strS__, json_strC_, strpos_dS, strpos_dC, strba_dS, strba_
         strS_.append(S_[i].qasm())     
     for i in range(len(C)):
         strC.append(C[i].qasm()) 
-    
-        
+           
     json_S_ = json.dumps(strS_)
     json_C = json.dumps(strC)
     
@@ -374,20 +374,21 @@ def makeKey(ownKkey, jS_, jC, seed, bS, bH, backend):
     bH = json.loads(bH)
     user = Contributor(None, backend, None, None, ownKkey)
     S = user.measure2(S_, bS)
-    H = user.measure2(C, bH)
-    K = int(''.join(map(str, user.unshuffle(S, seed))))
-    Contributor.checkHash(H,S)
+    K = (''.join(map(str, user.unshuffle(S, seed))))
+    securityCheck2(Contributor.decimalToBinary(hash(K)),(''.join(map(str, user.measure2(C, bH)))))
+    K=int(K)
     print(K^user.Kkey)
 
-"""
-#Very unreliable
-def securityCheck2(H,K):
-    Htemp = int(''.join(map(str, H)))
-    H_ = int(Contributor.decimalToBinary(hash(str(K)))) 
-    #print(Htemp)
-    #print(H_)
-    print(Htemp == H_)
-"""  
+
+def securityCheck2(H_,H):
+    if H_ == H:
+        pass
+    else:
+        print('Fails')
+   
+        
+    
+
 
 
 def mainTest():
