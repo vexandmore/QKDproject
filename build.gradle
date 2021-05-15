@@ -26,14 +26,13 @@ distributions {
 dependencies {
     //testImplementation     'junit:junit:4.13'
   implementation group: 'org.openjfx', name: 'javafx-media', version: '14'
-  implementation 'com.google.crypto.tink:tink-android:1.5.0'
   implementation group: 'org.jasypt', name: 'jasypt', version: '1.9.2'
 
 }
 
 javafx {
     version = "14"
-    modules = [  'javafx.controls', 'javafx.fxml', 'javafx.media' ]
+    modules = [  'javafx.controls', 'javafx.fxml' ]
 }
 
 mainClassName = 'QKDproject/QKDproject.Main';

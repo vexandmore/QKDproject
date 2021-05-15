@@ -1,7 +1,7 @@
 package QKDproject;
 
-import static QKDproject.QKDAlice.keepAtIndices;
-import static QKDproject.QKDAlice.removeAtIndices;
+//import static QKDproject.QKDAlice.keepAtIndices;
+//import static QKDproject.QKDAlice.removeAtIndices;
 import QKDproject.exception.*;
 import org.jasypt.encryption.pbe.StandardPBEByteEncryptor;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
@@ -79,7 +79,7 @@ public class QKDAlice2 implements Protocol {
 				matchingIndices.add(i);
 			}
 		}
-		alice_matching_measured = keepAtIndices(matchingIndices, alice_bits);
+		alice_matching_measured = Utils.keepAtIndices(matchingIndices, alice_bits);
 		return matchingIndices;
 	}
 	
@@ -91,9 +91,9 @@ public class QKDAlice2 implements Protocol {
 	 * @return Whether or not the sample Alice has made matches Bob's.
 	 */
 	protected boolean samplesMatch(String bobSample, List<Integer> sampleIndices) {
-		alice_sample = keepAtIndices(sampleIndices, alice_matching_measured);
+		alice_sample = Utils.keepAtIndices(sampleIndices, alice_matching_measured);
 		if (alice_sample.equals(bobSample)) {
-			this.key = removeAtIndices(sampleIndices, alice_matching_measured);
+			this.key = Utils.removeAtIndices(sampleIndices, alice_matching_measured);
 			textEncryptor.setPassword(this.key);
 			System.out.println("a: " + this.key);
 			return true;

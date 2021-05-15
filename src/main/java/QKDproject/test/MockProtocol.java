@@ -7,33 +7,36 @@ package QKDproject.test;
 
 import QKDproject.Protocol;
 import java.util.Random;
-import com.google.crypto.tink.subtle.AesGcmJce;
+import org.jasypt.encryption.pbe.StandardPBEByteEncryptor;
 import java.security.GeneralSecurityException;
+import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 /**
  * Simple class to test encryption with tink.
  * @author Marc
  */
 public class MockProtocol implements Protocol {
-	private byte[] sharedKey;
+	private String sharedKey;
+	private StandardPBEByteEncryptor textEncryptor = new StandardPBEByteEncryptor();
 	
 	public MockProtocol() {
 		sharedKey = determineSharedKey();
+		textEncryptor.setPassword(sharedKey);
 	}
 	
-	private byte[] determineSharedKey() {
+	private String determineSharedKey() {
 		Random r = new Random();
-		byte[] key = new byte[16];
-		r.nextBytes(key);
-		return key;
+		StringBuilder keyB = new StringBuilder();
+		for (int i = 0; i < 128; i++) {
+			keyB.append(r.nextInt());
+		}
+		return keyB.toString();
 	}
 
 	@Override
 	public byte[] encryptMessage(byte[] message) {
 		try {
-			AesGcmJce a = new AesGcmJce(sharedKey);
-			byte[] encrypted = a.encrypt(message, new byte[0]);
-			return encrypted;
-		} catch (GeneralSecurityException ex) {
+			return textEncryptor.encrypt(message);
+		} catch (EncryptionOperationNotPossibleException ex) {
 			System.out.println("error\n" + ex);
 			return null;
 		}
@@ -42,11 +45,9 @@ public class MockProtocol implements Protocol {
 	@Override
 	public byte[] decryptMessage(byte[] encryptedMessage) {
 		try {
-			AesGcmJce a = new AesGcmJce(sharedKey);
-			byte[] decrypted = a.decrypt(encryptedMessage, new byte[0]);
-			return decrypted;
-		} catch (GeneralSecurityException ex) {
-			System.out.println("Error\n" + ex);
+			return textEncryptor.decrypt(encryptedMessage);
+		} catch (EncryptionOperationNotPossibleException ex) {
+			System.out.println("error\n" + ex);
 			return null;
 		}
 	}

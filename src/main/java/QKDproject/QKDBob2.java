@@ -1,11 +1,10 @@
 package QKDproject;
 
-import static QKDproject.QKDAlice.bitStringToArray;
-import static QKDproject.QKDAlice.keepAtIndices;
-import static QKDproject.QKDAlice.sampleIndices;
-import static QKDproject.QKDAlice.removeAtIndices;
+//import static QKDproject.QKDAlice.bitStringToArray;
+//import static QKDproject.QKDAlice.keepAtIndices;
+//import static QKDproject.QKDAlice.sampleIndices;
+//import static QKDproject.QKDAlice.removeAtIndices;
 import QKDproject.exception.*;
-import com.google.crypto.tink.subtle.AesGcmJce;
 import org.jasypt.encryption.pbe.StandardPBEByteEncryptor;
 import java.util.*;
 import java.io.*;
@@ -58,13 +57,13 @@ public class QKDBob2 implements Protocol {
 			}
 			//figure out where we measured in the same basis as alice
 			List<Integer> matchingMeasurements = alice.measuredSameIndices(bob_bases);
-			bob_matching_measured = keepAtIndices(matchingMeasurements, bob_results);
+			bob_matching_measured = Utils.keepAtIndices(matchingMeasurements, bob_results);
 			//make and compare a sample
-			List<Integer> sampleIndices = sampleIndices(alice.getSecurityLevel(), bob_matching_measured.length());
-			String bob_sample = keepAtIndices(sampleIndices, bob_matching_measured);
+			List<Integer> sampleIndices = Utils.sampleIndices(alice.getSecurityLevel(), bob_matching_measured.length());
+			String bob_sample = Utils.keepAtIndices(sampleIndices, bob_matching_measured);
 			if (alice.samplesMatch(bob_sample, sampleIndices)) {
 				//make the key here
-				this.key = removeAtIndices(sampleIndices, bob_matching_measured);
+				this.key = Utils.removeAtIndices(sampleIndices, bob_matching_measured);
 				this.textEncryptor.setPassword(key);
 				System.out.println("b: " + this.key);
 				keyMade = true;

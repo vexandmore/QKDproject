@@ -1,9 +1,8 @@
 package QKDproject;
 
-import static QKDproject.QKDAlice.bitStringToArray;
-import static QKDproject.QKDAlice.keepAtIndices;
-import static QKDproject.QKDAlice.removeAtIndices;
-import static QKDproject.QKDAlice.sampleIndices;
+//import static QKDproject.QKDAlice.keepAtIndices;
+//import static QKDproject.QKDAlice.removeAtIndices;
+//import static QKDproject.QKDAlice.sampleIndices;
 import QKDproject.exception.KeyExchangeFailure;
 import java.io.*;
 import java.util.List;
@@ -105,8 +104,8 @@ public class QKDChannel {
 	}
 	public boolean samplesMatch(String sample, List<Integer> sampleIndices) {
 		if (eavesdropping) {
-			String eve_matching = QKDAlice.keepAtIndices(matchingMeasured, eve_results);
-			this.eve_key = QKDAlice.removeAtIndices(sampleIndices, eve_matching);
+			String eve_matching = Utils.keepAtIndices(matchingMeasured, eve_results);
+			this.eve_key = Utils.removeAtIndices(sampleIndices, eve_matching);
 			System.out.println("e: " + eve_key);
 		}
 		return alice.samplesMatch(sample, sampleIndices);
