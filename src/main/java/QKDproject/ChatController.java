@@ -21,13 +21,14 @@ import javafx.scene.input.*;
  * @author Marc and Raphael
  */
 public class ChatController {
-	@FXML public VBox chatGrid;
-	@FXML public ScrollPane scrollPane;
-	@FXML public TextField textfield;
-	@FXML public BorderPane pane;
-	@FXML public Button sendButton;
-	@FXML public Text headerText;
+	@FXML private VBox chatGrid;
+	@FXML private ScrollPane scrollPane;
+	@FXML private TextField textfield;
+	@FXML private BorderPane pane;
+	@FXML private Button sendButton;
+	@FXML private Text headerText;
 	@FXML public Button backButton;
+	@FXML private VBox visPane;
 	private Chat chat;
 	
 	public ChatController() {
@@ -41,6 +42,14 @@ public class ChatController {
 	protected void setChat(Chat c) {
 		this.chat = c;
 		headerText.setText("Conversation with " + c.getUser2());
+	}
+	
+	/**
+	 * Returns the pane that is positioned to show the protocols.
+	 * @return VBox where a protocol can be shown.
+	 */
+	protected VBox getVisPane() {
+		return visPane;
 	}
 	
 	@FXML

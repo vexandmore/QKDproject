@@ -1,10 +1,7 @@
 package QKDproject;
 
-//import static QKDproject.QKDAlice.bitStringToArray;
-//import static QKDproject.QKDAlice.keepAtIndices;
-//import static QKDproject.QKDAlice.sampleIndices;
-//import static QKDproject.QKDAlice.removeAtIndices;
 import QKDproject.exception.*;
+import QKDproject.visualization.*;
 import org.jasypt.encryption.pbe.StandardPBEByteEncryptor;
 import java.util.*;
 import java.io.*;
@@ -14,7 +11,8 @@ import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
  *
  * @author Marc
  */
-public class QKDBob2 implements Protocol {
+public class QKDBob2 implements Protocol, Visualizable {
+	private Visualizer visualizer;
 	private String key;
 	private StandardPBEByteEncryptor textEncryptor = new StandardPBEByteEncryptor();
 	private String bob_bases = "", bob_results = "";
@@ -105,5 +103,10 @@ public class QKDBob2 implements Protocol {
 		if (python == null)
 			python = new PyScript(SCRIPT_LOCATION, "QiskitEngine");
 		return python;
+	}
+	
+	@Override
+	public void setVisualizer(Visualizer v) {
+		visualizer = v;
 	}
 }

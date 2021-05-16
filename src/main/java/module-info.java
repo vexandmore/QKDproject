@@ -11,5 +11,5 @@ module QKDproject {
 	requires java.logging;
 	
 	opens QKDproject to javafx.graphics, javafx.fxml;
-	exports QKDproject;
+	opens QKDproject.visualization to javafx.graphics, javafx.fxml;
 }

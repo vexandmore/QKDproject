@@ -5,6 +5,7 @@ package QKDproject;
 import QKDproject.exception.*;
 import org.jasypt.encryption.pbe.StandardPBEByteEncryptor;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
+import QKDproject.visualization.*;
 import java.io.*;
 import java.util.*;
 
@@ -12,7 +13,8 @@ import java.util.*;
  *
  * @author Marc
  */
-public class QKDAlice2 implements Protocol {
+public class QKDAlice2 implements Protocol, Visualizable {
+	private Visualizer visualizer;
 	private String key;
 	private StandardPBEByteEncryptor textEncryptor = new StandardPBEByteEncryptor();
 	protected QKDChannel channel;
@@ -57,6 +59,10 @@ public class QKDAlice2 implements Protocol {
 				alice_bases += rand.nextBoolean() ? '1' : '0';
 				alice_bits += rand.nextBoolean() ? '1' : '0';
 			}
+			if (visualizer != null) {
+				visualizer.addBits(alice_bits, alice_bases);
+			}
+			
 			alice_circuits = getPython().getResults(bitsSent + " " + alice_bits + " " + alice_bases);
 			channel.passCircuitsToBob(alice_circuits);
 		} catch (IOException e) {
@@ -130,5 +136,10 @@ public class QKDAlice2 implements Protocol {
 		if (python == null)
 			python = new PyScript(SCRIPT_LOCATION, "QiskitEngine");
 		return python;
+	}
+
+	@Override
+	public void setVisualizer(Visualizer v) {
+		visualizer = v;
 	}
 }

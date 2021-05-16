@@ -1,14 +1,10 @@
 
 package QKDproject;
 
-import QKDproject.test.SimpleUserWindow;
+import QKDproject.visualization.*;
 import javafx.fxml.FXML;
 import javafx.scene.layout.*;
 import java.util.*;
-import java.util.regex.Pattern;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.control.*;
 import javafx.collections.*;
 import javafx.collections.ListChangeListener.Change;
@@ -16,7 +12,6 @@ import javafx.event.*;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.*;
 import javafx.scene.input.*;
-import javafx.stage.Stage;
 
 /**
  * JavaFX Controller for the Control Users window.
@@ -28,6 +23,9 @@ public class ControlUsersController {
 	private HashMap<Pair<User>, EncryptionParameters> encryptionSettings = new HashMap<>();
 	private HashMap<User, EncryptionGuis> guiComponents = new HashMap<>();
 	private HashMap<User, UserWindowController> userWindows = new HashMap<>();
+	
+	private HashMap<Pair<User>, Visualizer> visualizers = new HashMap<>();
+	
 	@FXML private GridPane grid;
 	@FXML private TextField usernameField;
 	private int numUsers = 0;
@@ -128,6 +126,11 @@ public class ControlUsersController {
 				//modify existing chat windows
 				chatInstances.get(u1).get(u2).changeProtocol(protocols[0]);
 				chatInstances.get(u2).get(u1).changeProtocol(protocols[1]);
+				if (protocols[0] instanceof Visualizable) {
+					Visualizer v = visualizers.get(new Pair(u1, u2));
+					((Visualizable)protocols[0]).setVisualizer(v);
+					((Visualizable)protocols[1]).setVisualizer(v);
+				}
 			} else {
 				//make comm channel and users
 				CommunicationChannel channel = new CommunicationChannel();
@@ -141,9 +144,17 @@ public class ControlUsersController {
 				Parent root2 = loader2.load();
 				ChatController controller2 = loader2.getController();
 				
-				//connect it all up
+				//connect the chats
 				Chat chat1 = new Chat(u1, u2, protocols[0], controller1, channel);
 				Chat chat2 = new Chat(u2, u1, protocols[1], controller2, channel);
+				//add visualizer
+				Visualizer v = new Visualizer(controller1.getVisPane(), controller2.getVisPane());
+				visualizers.put(new Pair(u1, u2), v);
+				if (protocols[0] instanceof Visualizable) {
+					((Visualizable)protocols[0]).setVisualizer(v);
+					((Visualizable)protocols[1]).setVisualizer(v);
+				}
+				
 				//show the windows
 				userWindows.get(u1).addChat(root, controller1.backButton, chat1);
 				userWindows.get(u2).addChat(root2, controller2.backButton, chat2);
