@@ -13,10 +13,10 @@ import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
  */
 public class QKDBob2 implements Protocol, Visualizable {
 	private Visualizer visualizer;
-	private String key;
+	private MeasurementSet key;
 	private StandardPBEByteEncryptor textEncryptor = new StandardPBEByteEncryptor();
-	private String bob_bases = "", bob_results = "";
-	private String bob_matching_measured = "";
+	private String bob_bases = "";
+	private MeasurementSet bob_results, bob_matching_measured;
 	protected QKDChannel alice;
 	private static PyScript python;
 	/**
@@ -31,48 +31,48 @@ public class QKDBob2 implements Protocol, Visualizable {
 		}
 	}
 	
-	protected void passCircuits(String circuits) throws IOException, KeyExchangeFailure {
+	protected boolean passCircuits(String circuits) throws IOException, KeyExchangeFailure {
 		boolean keyMade = false;
 		Random rand = new Random();
-		
-		for (int numAttempts = 0; numAttempts < 5 && !keyMade; numAttempts++) {
-			//make measurement bases
-			bob_bases = "";
-			int bitsSent = (int) ((QKDAlice2.KEY_SIZE * 8 * 2.5) / (1 - (alice.getSecurityLevel() / 100.0)));
-			for (int i = 0; i < bitsSent; i++) {
-				bob_bases += rand.nextBoolean() ? '1' : '0';
-			}
-			//make measurements
-			String[] pythonOutput = getPython().getResults(bob_bases + " " + circuits).split(" ", 2);
-			bob_results = pythonOutput[0];
-			if (bob_results.length() != bob_bases.length()) {
-				System.out.println("bob results: " + bob_results);
-				for (int i = 0; i < 20; i++) {
-					System.out.println(python.getResults(""));
-				}
-				throw new KeyExchangeFailure("Error running python code,"
-						+ " result was unexpected length. Verify the anaconda setup.");
-			}
-			//figure out where we measured in the same basis as alice
-			List<Integer> matchingMeasurements = alice.measuredSameIndices(bob_bases);
-			bob_matching_measured = Utils.keepAtIndices(matchingMeasurements, bob_results);
-			//make and compare a sample
-			List<Integer> sampleIndices = Utils.sampleIndices(alice.getSecurityLevel(), bob_matching_measured.length());
-			String bob_sample = Utils.keepAtIndices(sampleIndices, bob_matching_measured);
-			if (alice.samplesMatch(bob_sample, sampleIndices)) {
-				//make the key here
-				this.key = Utils.removeAtIndices(sampleIndices, bob_matching_measured);
-				this.textEncryptor.setPassword(key);
-				System.out.println("b: " + this.key);
-				keyMade = true;
-			} else {
-				//System.out.println("Key not made, eavesdropper or noise");
-			}
+
+		//make measurement bases
+		bob_bases = "";
+		int bitsSent = (int) ((QKDAlice2.KEY_SIZE * 8 * 2.5) / (1 - (alice.getSecurityLevel() / 100.0)));
+		for (int i = 0; i < bitsSent; i++) {
+			bob_bases += rand.nextBoolean() ? '1' : '0';
 		}
-		if (keyMade)
-			return;
-		else
-			throw new KeyExchangeFailure("Tried 5 times and could not establish a shared key.");
+		//make measurements
+		String[] pythonOutput = getPython().getResults(bob_bases + " " + circuits).split(" ", 2);
+		bob_results = new MeasurementSet(pythonOutput[0]);
+
+		if (this.visualizer != null) {
+			visualizer.addMeasurement(bob_bases, bob_results.toString());
+		}
+
+		if (bob_results.length() != bob_bases.length()) {
+			throw new KeyExchangeFailure("Error running python code,"
+					+ " result was unexpected length. Verify the anaconda setup.");
+		}
+		//figure out where we measured in the same basis as alice
+		List<Integer> matchingMeasurements = alice.measuredSameIndices(bob_bases);
+		bob_matching_measured = bob_results.makeSubstring(matchingMeasurements);
+		//make and compare a sample
+		List<Integer> sampleIndices = Utils.sampleIndices(alice.getSecurityLevel(), bob_matching_measured.length());
+		//String bob_sample = Utils.keepAtIndices(sampleIndices, bob_matching_measured);
+		MeasurementSet bob_sample = bob_matching_measured.makeSubstring(sampleIndices);
+		if (alice.samplesMatch(bob_sample.toString(), sampleIndices)) {
+			//make the key here
+			this.key = bob_sample.complement();
+			this.textEncryptor.setPassword(key.toString());
+			System.out.println("b: " + this.key);
+
+			if (visualizer != null) {
+				visualizer.addKey(key.toString(), key.indicesRoot());
+			}
+			return true;
+		} else {
+			return false;
+		}
 	}
 	
 	@Override
@@ -108,5 +108,13 @@ public class QKDBob2 implements Protocol, Visualizable {
 	@Override
 	public void setVisualizer(Visualizer v) {
 		visualizer = v;
+	}
+
+	private List<Integer> makeSampleIndices(List<Integer> matchingMeasurements, List<Integer> sampleIndices) {
+		List<Integer> out = new ArrayList<>();
+		for (int i: sampleIndices) {
+			out.add(matchingMeasurements.get(i));
+		}
+		return out;
 	}
 }

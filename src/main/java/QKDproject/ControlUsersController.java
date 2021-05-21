@@ -1,6 +1,7 @@
 
 package QKDproject;
 
+import QKDproject.util.Pair;
 import QKDproject.visualization.*;
 import javafx.fxml.FXML;
 import javafx.scene.layout.*;
@@ -126,8 +127,8 @@ public class ControlUsersController {
 				//modify existing chat windows
 				chatInstances.get(u1).get(u2).changeProtocol(protocols[0]);
 				chatInstances.get(u2).get(u1).changeProtocol(protocols[1]);
-				if (protocols[0] instanceof Visualizable) {
-					Visualizer v = visualizers.get(new Pair(u1, u2));
+				if (protocols[0] instanceof Visualizable && protocols[1] instanceof Visualizable) {
+					Visualizer v = visualizers.get(new Pair<>(u1, u2));
 					((Visualizable)protocols[0]).setVisualizer(v);
 					((Visualizable)protocols[1]).setVisualizer(v);
 				}
@@ -149,7 +150,7 @@ public class ControlUsersController {
 				Chat chat2 = new Chat(u2, u1, protocols[1], controller2, channel);
 				//add visualizer
 				Visualizer v = new Visualizer(controller1.getVisPane(), controller2.getVisPane());
-				visualizers.put(new Pair(u1, u2), v);
+				visualizers.put(new Pair<>(u1, u2), v);
 				if (protocols[0] instanceof Visualizable) {
 					((Visualizable)protocols[0]).setVisualizer(v);
 					((Visualizable)protocols[1]).setVisualizer(v);
@@ -284,29 +285,3 @@ class EncryptionGuis {
 	}
 }
 
-/**
- * Represents an unordered pair. Cannot contain null elements.
- */
-final class Pair<T> {
-	public final T u1, u2;
-	public Pair(T u1, T u2) {
-		this.u1 = Objects.requireNonNull(u1);
-		this.u2 = Objects.requireNonNull(u2);
-	}
-	@Override
-	public int hashCode() {
-		return u1.hashCode() + u2.hashCode();
-	}
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (!(obj instanceof Pair))
-			return false;
-		final Pair other = (Pair) obj;
-		return (u1.equals(other.u1) && u2.equals(other.u2) ||
-				u1.equals(other.u2) && u2.equals(other.u1));
-	}
-}

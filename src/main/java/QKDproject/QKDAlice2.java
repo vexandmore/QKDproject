@@ -1,7 +1,5 @@
 package QKDproject;
 
-//import static QKDproject.QKDAlice.keepAtIndices;
-//import static QKDproject.QKDAlice.removeAtIndices;
 import QKDproject.exception.*;
 import org.jasypt.encryption.pbe.StandardPBEByteEncryptor;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
@@ -15,13 +13,13 @@ import java.util.*;
  */
 public class QKDAlice2 implements Protocol, Visualizable {
 	private Visualizer visualizer;
-	private String key;
+	private MeasurementSet key;
 	private StandardPBEByteEncryptor textEncryptor = new StandardPBEByteEncryptor();
 	protected QKDChannel channel;
 	public final static int KEY_SIZE = 3;
 	private final int securityLevel;
 	private String alice_bits, alice_bases, alice_circuits;
-	private String alice_sample = "", alice_matching_measured = "";
+	private MeasurementSet alice_sample, alice_matching_measured;
 	
 	/**
 	 * The path of the python script. Determined at runtime.
@@ -50,21 +48,26 @@ public class QKDAlice2 implements Protocol, Visualizable {
 	protected synchronized void makeKey() throws KeyExchangeFailure {
 		if (key != null)
 			return;
+		boolean keyMade = false;
 		try {
-			int bitsSent = (int) ((KEY_SIZE * 8 * 2.5) / (1 - (securityLevel / 100.0)));
-			alice_bases = "";
-			alice_bits = "";
-			Random rand = new Random();
-			for (int i = 0; i < bitsSent; i++) {
-				alice_bases += rand.nextBoolean() ? '1' : '0';
-				alice_bits += rand.nextBoolean() ? '1' : '0';
+			for (int numTries = 1; numTries <= 5 && !keyMade; numTries++) {
+				int bitsSent = (int) ((KEY_SIZE * 8 * 2.5) / (1 - (securityLevel / 100.0)));
+				alice_bases = "";
+				alice_bits = "";
+				Random rand = new Random();
+				for (int i = 0; i < bitsSent; i++) {
+					alice_bases += rand.nextBoolean() ? '1' : '0';
+					alice_bits += rand.nextBoolean() ? '1' : '0';
+				}
+				if (visualizer != null) {
+					visualizer.addBits(alice_bits, alice_bases);
+				}
+
+				alice_circuits = getPython().getResults(bitsSent + " " + alice_bits + " " + alice_bases);
+				keyMade = channel.passCircuitsToBob(alice_circuits);
 			}
-			if (visualizer != null) {
-				visualizer.addBits(alice_bits, alice_bases);
-			}
-			
-			alice_circuits = getPython().getResults(bitsSent + " " + alice_bits + " " + alice_bases);
-			channel.passCircuitsToBob(alice_circuits);
+			if (!keyMade)
+				throw new KeyExchangeFailure("Tried 5 times, and could not establish key (eavesdropper)");
 		} catch (IOException e) {
 			throw new KeyExchangeFailure(e);
 		}
@@ -85,7 +88,7 @@ public class QKDAlice2 implements Protocol, Visualizable {
 				matchingIndices.add(i);
 			}
 		}
-		alice_matching_measured = Utils.keepAtIndices(matchingIndices, alice_bits);
+		alice_matching_measured = new MeasurementSet(alice_bits, matchingIndices);
 		return matchingIndices;
 	}
 	
@@ -97,14 +100,16 @@ public class QKDAlice2 implements Protocol, Visualizable {
 	 * @return Whether or not the sample Alice has made matches Bob's.
 	 */
 	protected boolean samplesMatch(String bobSample, List<Integer> sampleIndices) {
-		alice_sample = Utils.keepAtIndices(sampleIndices, alice_matching_measured);
-		if (alice_sample.equals(bobSample)) {
-			this.key = Utils.removeAtIndices(sampleIndices, alice_matching_measured);
-			textEncryptor.setPassword(this.key);
+		alice_sample = alice_matching_measured.makeSubstring(sampleIndices);
+		if (alice_sample.toString().equals(bobSample)) {
+			this.key = alice_sample.complement();
+			textEncryptor.setPassword(this.key.toString());
+			if (visualizer != null)
+				visualizer.addKey(this.key.toString(), this.key.indicesRoot());
 			System.out.println("a: " + this.key);
 			return true;
 		} else {
-			return alice_sample.equals(bobSample);
+			return false;
 		}
 	}
 	

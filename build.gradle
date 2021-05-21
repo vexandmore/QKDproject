@@ -2,6 +2,7 @@
 plugins{
   id 'java'
   id 'application'
+  id 'jacoco'
   id 'org.openjfx.javafxplugin'  version '0.0.9'
 }
 
@@ -24,11 +25,16 @@ distributions {
 }
 
 dependencies {
-    //testImplementation     'junit:junit:4.13'
+  testImplementation 'junit:junit:4.13'
   implementation group: 'org.openjfx', name: 'javafx-media', version: '14'
   implementation group: 'org.jasypt', name: 'jasypt', version: '1.9.2'
 
 }
+
+/*test {
+	useJUnit()
+}*/
+//run.dependsOn test
 
 javafx {
     version = "16"
@@ -36,3 +42,7 @@ javafx {
 }
 
 mainClassName = 'QKDproject/QKDproject.Main';
+
+/*tasks.withType(JavaCompile) {
+	options.compilerArgs += ["-Xlint:unchecked"]
+}*/

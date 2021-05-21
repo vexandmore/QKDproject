@@ -7,6 +7,7 @@ import QKDproject.exception.KeyExchangeFailure;
 import java.io.*;
 import java.util.List;
 import java.util.Random;
+import QKDproject.visualization.*;
 
 /**
  * Eavesdropper. Sits between Alice and Bob.
@@ -15,11 +16,12 @@ import java.util.Random;
 public class QKDChannel {
 	private QKDBob2 bob;
 	private QKDAlice2 alice;
-	private String eve_bases = "", eve_results = "";
-	private String eve_key = "";
+	private String eve_bases = "";
+	private MeasurementSet eve_results, eve_key;
 	private List<Integer> matchingMeasured = null;
 	private static PyScript python;
 	private boolean eavesdropping;
+	private Visualizer visualizer;
 	/**
 	 * The path of the python script. Determined at runtime.
 	 */
@@ -49,37 +51,37 @@ public class QKDChannel {
 		bob.alice = this;
 	}
 	
-	protected void passCircuitsToBob(String circuits) throws KeyExchangeFailure, IOException {
+	protected boolean passCircuitsToBob(String circuits) throws KeyExchangeFailure, IOException {
 		if (!eavesdropping) {
-			bob.passCircuits(circuits);
+			return bob.passCircuits(circuits);
 		} else {
-			interceptCircuits(circuits);
+			return interceptCircuits(circuits);
 		}
 	}
 	
-	private void interceptCircuits(String circuits) throws IOException, KeyExchangeFailure {
+	private boolean interceptCircuits(String circuits) throws IOException, KeyExchangeFailure {
 		boolean keyMade = false;
 		Random rand = new Random();
 		//make measurement bases
 		eve_bases = "";
 		int bitsSent = (int) ((QKDAlice2.KEY_SIZE * 8 * 2.5) / (1 - (alice.getSecurityLevel() / 100.0)));
 		for (int i = 0; i < bitsSent; i++) {
-			//if (i % 2 == 0) {
-			//	eve_bases += "2";
-			//} else {
-				eve_bases += rand.nextBoolean() ? '1' : '0';
-			//}
+			eve_bases += rand.nextBoolean() ? '1' : '0';
 		}
 		//make measurements
 		String[] pythonOutput = getPython().getResults(eve_bases + " " + circuits).split(" ", 2);
-		eve_results = pythonOutput[0];
+		eve_results = new MeasurementSet(pythonOutput[0]);
+		
+		if (visualizer != null)
+			visualizer.addMeasurement(eve_bases, eve_results.toString());
+		
 		String new_circuits = pythonOutput[1];
 		if (eve_results.length() != eve_bases.length()) {
 			throw new KeyExchangeFailure("Error running python code,"
 					+ " result was unexpected length. Verify the anaconda setup.");
 		}
 		//Pass on new circuits to Bob
-		bob.passCircuits(new_circuits);
+		return bob.passCircuits(new_circuits);
 	}
 	
 	private static PyScript getPython() throws IOException {
@@ -104,9 +106,13 @@ public class QKDChannel {
 	}
 	public boolean samplesMatch(String sample, List<Integer> sampleIndices) {
 		if (eavesdropping) {
-			String eve_matching = Utils.keepAtIndices(matchingMeasured, eve_results);
-			this.eve_key = Utils.removeAtIndices(sampleIndices, eve_matching);
-			System.out.println("e: " + eve_key);
+			MeasurementSet eve_matching = eve_results.makeSubstring(matchingMeasured);
+			this.eve_key = eve_matching.makeSubstring(sampleIndices).complement();
+			
+			if (this.visualizer != null)
+				this.visualizer.addKey(this.eve_key.toString(), this.eve_key.indicesRoot());
+			
+			System.out.println("e: " + eve_key.toString());
 		}
 		return alice.samplesMatch(sample, sampleIndices);
 	}

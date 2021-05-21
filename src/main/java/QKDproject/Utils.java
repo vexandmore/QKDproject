@@ -1,9 +1,6 @@
 package QKDproject;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Provides utility methods for QKD.
@@ -11,25 +8,6 @@ import java.util.List;
  */
 public class Utils {
 
-	/**
-	 * Returns a new String consisting of the input string where only characters
-	 * at the given indices have been kept. Characters are added in the order
-	 * they are in the list
-	 * @param indices List containing the indices to keep
-	 * @param str Input string
-	 * @return String with chars at the given indices
-	 */
-	public static String keepAtIndices(List<Integer> indices, String str) {
-		if (indices.size() > str.length()) {
-			throw new IllegalArgumentException("index list must not be longer" + "than string");
-		}
-		if (indices.isEmpty()) {
-			return "";
-		}
-		StringBuilder out = new StringBuilder();
-		indices.forEach(i -> out.append(str.charAt(i)));
-		return out.toString();
-	}
 
 	/**
 	 * Creates a list of indices that should be compared so that the number
@@ -55,47 +33,30 @@ public class Utils {
 		return out;
 	}
 
-	/**
-	 * Returns the indices where the Strings have identical characters. Strings
-	 * must be of the same length.
-	 * @param a First String
-	 * @param b Second string
-	 * @return List containing indices where the Strings match
-	 */
-	public static List<Integer> matchingIndices(String a, String b) {
-		if (a.length() != b.length()) {
-			throw new IllegalArgumentException("Strings must be same length");
-		}
-		List<Integer> indices = new ArrayList<>();
-		for (int i = 0; i < a.length(); i++) {
-			if (a.charAt(i) == b.charAt(i)) {
-				indices.add(i);
-			}
-		}
-		return indices;
-	}
 
+	
 	/**
-	 * Returns a new String consisting of the input string where only characters
-	 * at the given indices have been removed. List must be sorted.
-	 * @param indices List containing the indices to keep
-	 * @param str Input string
-	 * @return String with chars at the given indices
+	 * Returns true if the list is in nondecreasing (aka weakly increasing)
+	 * order according to their natural ordering. Empty lists and lists of 1 
+	 * item are considered sorted.
+	 * @param <T> The type of the list. It must be possible to mutually compare
+	 * all objects in the list.
+	 * @param ls The list to check.
+	 * @return Whether the list is sorted.
 	 */
-	public static String removeAtIndices(List<Integer> indices, String str) {
-		if (indices.size() > str.length()) {
-			throw new IllegalArgumentException("index list must not be longer" + "than string");
+	public static <T extends Comparable<? super T>> boolean isSorted(List<T> ls) {
+		if (ls.size() < 2)
+			return true;
+		
+		Iterator<T> it = ls.iterator();
+		T previous = it.next();
+		while (it.hasNext()) {
+			T current = it.next();
+			if (previous.compareTo(current) > 0) 
+				return false;
+			previous = current;
 		}
-		if (indices.isEmpty()) {
-			return str;
-		}
-		StringBuilder out = new StringBuilder();
-		for (int i = 0; i < str.length(); i++) {
-			if (Collections.binarySearch(indices, i) < 0) {
-				out.append(str.charAt(i)); //append to the string if the index isn't in list
-			}
-		}
-		return out.toString();
+		return true;
 	}
 	
 }
