@@ -31,9 +31,6 @@ dependencies {
 
 }
 
-/*test {
-	useJUnit()
-}*/
 //run.dependsOn test
 
 javafx {

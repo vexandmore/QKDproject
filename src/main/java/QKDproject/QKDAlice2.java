@@ -105,8 +105,7 @@ public class QKDAlice2 implements Protocol, Visualizable {
 			this.key = alice_sample.complement();
 			textEncryptor.setPassword(this.key.toString());
 			if (visualizer != null)
-				visualizer.addKey(this.key.toString(), this.key.indicesRoot());
-			System.out.println("a: " + this.key);
+				visualizer.addKey(this.key.toString(), this.key.indicesRoot(), "alice");
 			return true;
 		} else {
 			return false;
@@ -146,5 +145,6 @@ public class QKDAlice2 implements Protocol, Visualizable {
 	@Override
 	public void setVisualizer(Visualizer v) {
 		visualizer = v;
+		channel.setVisualizer(v);
 	}
 }

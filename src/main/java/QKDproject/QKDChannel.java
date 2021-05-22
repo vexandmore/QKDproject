@@ -1,8 +1,5 @@
 package QKDproject;
 
-//import static QKDproject.QKDAlice.keepAtIndices;
-//import static QKDproject.QKDAlice.removeAtIndices;
-//import static QKDproject.QKDAlice.sampleIndices;
 import QKDproject.exception.KeyExchangeFailure;
 import java.io.*;
 import java.util.List;
@@ -13,7 +10,7 @@ import QKDproject.visualization.*;
  * Eavesdropper. Sits between Alice and Bob.
  * @author Marc
  */
-public class QKDChannel {
+public class QKDChannel implements Visualizable {
 	private QKDBob2 bob;
 	private QKDAlice2 alice;
 	private String eve_bases = "";
@@ -28,9 +25,7 @@ public class QKDChannel {
 	private static String SCRIPT_LOCATION;
 	static {
 		try {
-			SCRIPT_LOCATION = new File(".").getCanonicalPath() + 
-					File.separatorChar + "src" + File.separatorChar + "main" + 
-					File.separatorChar + "qkdImplementation2.py";
+			SCRIPT_LOCATION = new File(".").getCanonicalPath() + File.separatorChar + "qkdImplementation2.py";
 		} catch (IOException e) {
 			SCRIPT_LOCATION = "error getting script location";
 		}
@@ -48,7 +43,12 @@ public class QKDChannel {
 		this.alice = alice;
 		alice.channel = this;
 		this.bob = bob;
-		bob.alice = this;
+		bob.channel = this;
+	}
+	
+	@Override
+	public void setVisualizer(Visualizer v) {
+		this.visualizer = v;
 	}
 	
 	protected boolean passCircuitsToBob(String circuits) throws KeyExchangeFailure, IOException {
@@ -73,7 +73,7 @@ public class QKDChannel {
 		eve_results = new MeasurementSet(pythonOutput[0]);
 		
 		if (visualizer != null)
-			visualizer.addMeasurement(eve_bases, eve_results.toString());
+			visualizer.addMeasurement(eve_bases, eve_results.toString(), "eve");
 		
 		String new_circuits = pythonOutput[1];
 		if (eve_results.length() != eve_bases.length()) {
@@ -105,16 +105,18 @@ public class QKDChannel {
 		}
 	}
 	public boolean samplesMatch(String sample, List<Integer> sampleIndices) {
-		if (eavesdropping) {
+		boolean samplesMatch = alice.samplesMatch(sample, sampleIndices);
+		if (samplesMatch && eavesdropping) {
 			MeasurementSet eve_matching = eve_results.makeSubstring(matchingMeasured);
 			this.eve_key = eve_matching.makeSubstring(sampleIndices).complement();
 			
 			if (this.visualizer != null)
-				this.visualizer.addKey(this.eve_key.toString(), this.eve_key.indicesRoot());
+				this.visualizer.addKey(this.eve_key.toString(), this.eve_key.indicesRoot(), "eve");
 			
 			System.out.println("e: " + eve_key.toString());
 		}
-		return alice.samplesMatch(sample, sampleIndices);
+		
+		return samplesMatch;
 	}
 	public void makeKey() throws KeyExchangeFailure {
 		alice.makeKey();

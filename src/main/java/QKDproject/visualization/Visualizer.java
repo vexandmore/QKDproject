@@ -42,10 +42,10 @@ public class Visualizer {
 	 * @param bases Bases the qubits are measured in
 	 * @param outcome The outcome of the measurement
 	 */
-	public void addMeasurement(String bases, String outcome) {
+	public void addMeasurement(String bases, String outcome, String name) {
 		Platform.runLater(() -> {
-			allBits.peek().u1.addMeasurement(bases, outcome);
-			allBits.peek().u2.addMeasurement(bases, outcome);
+			allBits.peek().u1.addMeasurement(bases, outcome, name);
+			allBits.peek().u2.addMeasurement(bases, outcome, name);
 		});
 	}
 	
@@ -55,10 +55,10 @@ public class Visualizer {
 	 * @param keyIndices Indices of where, from the measurement, the bits were
 	 * taken from. Should be sorted.
 	 */
-	public void addKey(String keyBits, List<Integer> keyIndices) {
+	public void addKey(String keyBits, List<Integer> keyIndices, String name) {
 		Platform.runLater(() -> {
-			allBits.peek().u1.addKey(keyBits, keyIndices);
-			allBits.peek().u2.addKey(keyBits, keyIndices);
+			allBits.peek().u1.addKey(keyBits, keyIndices, name);
+			allBits.peek().u2.addKey(keyBits, keyIndices, name);
 		});
 	}
 }

@@ -35,8 +35,8 @@ public class Qubit extends GridPane {
 		rowNum = 2;
 	}
 	
-	public void addMeasurement(String bases, String result) {
-		Text m = new Text("Measurement");
+	public void addMeasurement(String bases, String result, String name) {
+		Text m = new Text("Measurement from " + name);
 		this.add(m, 0, rowNum++);
 		GridPane.setColumnSpan(m, numBits);
 		
@@ -82,11 +82,11 @@ public class Qubit extends GridPane {
 	 * @param keyIndices Indices of where, from the measurement, the bits were
 	 * taken from. Should be sorted.
 	 */
-	public void addKey(String keyBits, List<Integer> keyIndices) {
+	public void addKey(String keyBits, List<Integer> keyIndices, String name) {
 		if (!Utils.isSorted(keyIndices))
 			Collections.sort(keyIndices);
 		
-		Text m = new Text("Key");
+		Text m = new Text(name + "'s Key");
 		this.add(m, 0, rowNum++);
 		GridPane.setColumnSpan(m, numBits);
 		
